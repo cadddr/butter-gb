@@ -22,6 +22,8 @@ WaitVBlank:
 	ld a, 0
 	ld [rLCDC], a
 
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 	; Copy the tile data
 	ld de, Tiles
 	ld hl, $9000
@@ -81,6 +83,8 @@ ClearOam:
 	ld a, %00000000 ; attributes
 	ld [hl], a
 
+	;;;;;;;;;;;;;;;;;;;;
+
 	; Turn the LCD on
 	ld a, LCDCF_ON | LCDCF_BGON | LCDCF_OBJON | LCDCF_OBJ16
 	ld [rLCDC], a
@@ -95,11 +99,9 @@ ClearOam:
 	ld a, %11100100
 	ld [rOBP1], a
 
-;ld a, 0
-;ld [wStepsTaken], a
-
-ld b, -1 ; direction
-ld c, 2 ; direction
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	ld b, -1 ; direction
+	ld c, 2 ; direction
 Main:
 	ld a, [rLY]
 	cp 144
@@ -109,21 +111,10 @@ WaitVBlank2:
 	cp 144
 	jp c, WaitVBlank2
 
-	;ld a, [wStepsTaken]
-	;inc a
-	;ld [wStepsTaken], a
-	;cp a, 3 + 1
-
-	;jp nz, Main
-
-	;ld a, 0
-	;ld [wStepsTaken], a
-	jp Main
-	; Move player object
 	ld a, [_OAMRAM ]
-	cp a, 64 + 16 - 8
+	cp a, 0 + 16 - 8 + 4
 	jp z, ChangeDirectionPos
-	cp a, 64 + 16 + 8
+	cp a, 144 + 16 - 8 - 4
 	jp z, ChangeDirectionNeg
 	jp SkipChangeDirection
 
@@ -133,14 +124,13 @@ ChangeDirectionNeg:
 ChangeDirectionPos:
 	ld b, 1; Down
 SkipChangeDirection:
-
 	add a, b
 	ld [_OAMRAM], a
 
 	ld a, [_OAMRAM + 1]
-	cp a, 12 + 8 - 8
+	cp a, 0 + 8
 	jp z, ChangeDirectionPosX
-	cp a, 12 + 8 + 24
+	cp a, 160 + 8 - 8
 	jp z, ChangeDirectionNegX
 	jp SkipChangeDirectionX
 
@@ -153,8 +143,6 @@ SkipChangeDirectionX:
 
 	add a, c
 	ld [_OAMRAM + 1], a
-
-
 
 	jp Main
 
@@ -209,5 +197,4 @@ Tilemap:
 	db $00, $00, $00, $00, $00, $00, $00, $03, $01, $02, $01, $02, $05, $00, $00, $00, $00, $00, $00, $00,  0,0,0,0,0,0,0,0,0,0,0,0
 	db $00, $00, $00, $00, $00, $00, $01, $04, $01, $02, $01, $02, $06, $02, $00, $00, $00, $00, $00, $00,  0,0,0,0,0,0,0,0,0,0,0,0
 	db $00, $00, $00, $00, $00, $00, $00, $00, $00, $04, $06, $00, $00, $00, $00, $00, $00, $00, $00, $00,  0,0,0,0,0,0,0,0,0,0,0,0
-	
 TilemapEnd:
