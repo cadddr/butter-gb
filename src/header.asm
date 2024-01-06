@@ -2,6 +2,8 @@
 INCLUDE "hardware.inc/hardware.inc"
 	rev_Check_hardware_inc 4.0
 
+INCLUDE "main.inc"
+
 SECTION "Header", ROM0[$100]
 
 	; This is your ROM's entry point
@@ -16,9 +18,3 @@ SECTION "Header", ROM0[$100]
 	; was introduced in RGBDS 0.4.0, but the -MG etc flags were also
 	; introduced in that version.)
 	ds $150 - @, 0
-
-SECTION "Entry point", ROM0
-
-EntryPoint:
-	; Here is where the fun begins, happy coding :)
-	jr @
