@@ -1,6 +1,7 @@
-;INCLUDE "hardware.inc"
 INCLUDE "hardware.inc/hardware.inc"
 	rev_Check_hardware_inc 4.0
+
+INCLUDE "utils.inc"
 SECTION "Header", ROM0[$100]
 
 	jp EntryPoint
@@ -13,10 +14,7 @@ EntryPoint:
 	ld [rNR52], a
 
 	; Do not turn the LCD off outside of VBlank
-WaitVBlank:
-	ld a, [rLY]
-	cp 144
-	jp c, WaitVBlank
+	call WaitVBlank:
 
 	; Turn the LCD off
 	ld a, 0
