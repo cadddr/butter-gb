@@ -67,47 +67,70 @@ EntryPoint:
 	ld [rOBP0], a
 	ld [rOBP1], a
 
+
+SECTION "Input Variables", WRAM0
+wDirectionY: db
+wDirectionX: db
+	
+SECTION "Main", ROM0
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	ld b, -1 ; direction
-	ld c, 2 ; direction
+	ld a, -1
+	ld [wDirectionY], a ; direction
+	ld a, 1
+	ld [wDirectionX], a ; direction
 Main:
+	; Wait until it's *not* VBlank
 	ld a, [rLY]
 	cp 144
 	jp nc, Main
 
 	call WaitVBlank
 
+	ld a, [wDirectionY]
+	ld b, a
 	ld a, [_OAMRAM ]
-	cp a, 0 + 16 - 8 + 4
+	ld c, 0 + 16 - 8 + 4
+	ld d, 144 + 16 - 8 - 4
+	call CheckBoundsAndUpdateDirection
+	add a, b
+	ld [_OAMRAM], a
+	ld a, b
+	ld [wDirectionY], a
+
+
+	ld a, [wDirectionX]
+	ld b, a
+	ld a, [_OAMRAM + 1]
+	ld c, 0 + 8
+	ld d, 160 + 8 - 8
+	call CheckBoundsAndUpdateDirection
+	add a, b
+	add a, b ; X speed is twice that of Y
+	ld [_OAMRAM + 1], a
+	ld a, b
+	ld [wDirectionX], a
+
+	jp Main
+
+; @param a: coordinate
+; @param b: current direction/speed
+; @param c: lower limit
+; @param d: higher limit 
+CheckBoundsAndUpdateDirection:
+	cp a, c
 	jp z, ChangeDirectionPos
-	cp a, 144 + 16 - 8 - 4
+
+	cp a, d
 	jp z, ChangeDirectionNeg
-	jp SkipChangeDirection
+
+	ret
 
 ChangeDirectionNeg:
 	ld b, -1; Down
-	jp SkipChangeDirection
+	
+	ret
+
 ChangeDirectionPos:
 	ld b, 1; Down
-SkipChangeDirection:
-	add a, b
-	ld [_OAMRAM], a
 
-	ld a, [_OAMRAM + 1]
-	cp a, 0 + 8
-	jp z, ChangeDirectionPosX
-	cp a, 160 + 8 - 8
-	jp z, ChangeDirectionNegX
-	jp SkipChangeDirectionX
-
-ChangeDirectionNegX:
-	ld c, -2; Down
-	jp SkipChangeDirectionX
-ChangeDirectionPosX:
-	ld c, 2; Down
-SkipChangeDirectionX:
-
-	add a, c
-	ld [_OAMRAM + 1], a
-
-	jp Main
+	ret
