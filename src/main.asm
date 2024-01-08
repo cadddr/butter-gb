@@ -75,6 +75,12 @@ SECTION "Header", ROM0[$100]
 
 	ld a, 0
 	ld [wFrameCounter], a
+	ld a, 1
+	ld [wDirectionY], a ; direction
+	ld a, 1
+	ld [wDirectionX], a ; direction
+	ld a, 15
+	ld [wMotionMul], a
 
 Main:
 	ld a, [rLY]
@@ -82,6 +88,37 @@ Main:
 	jp nc, Main
 
 	call WaitVBlank
+
+	ld a, [wMotionMul]
+	ld b, a
+	ld a, [wFrameCounter]
+	inc a
+	ld [wFrameCounter], a
+	
+	cp b ; Every 15 frames (a quarter of a second), run the following code
+	jp nz, Main
+	ld a, [wMotionMul]
+	cp a, 1
+	jp z, SkipAcceleration
+	sub a, 1
+	ld [wMotionMul], a
+SkipAcceleration:
+
+	; Reset the frame counter back to 0
+	ld a, 0
+	ld [wFrameCounter], a
+
+	ld a, [wDirectionY]
+	ld b, a
+	ld a, [_OAMRAM ]
+	ld c, 0 + 16 - 8 + 4
+	ld d, 144 + 16 - 8 - 4
+	call CheckBoundsAndUpdateDirection
+	add a, b
+	ld [_OAMRAM], a
+	ld a, b
+	; add a, 1
+	ld [wDirectionY], a
 
 	; Check the current keys every frame and move left or right.
 	call UpdateKeys
@@ -95,8 +132,9 @@ Left:
 	; Move the paddle one pixel to the left.
 	ld a, [_OAMRAM + 1]
 	dec a
+	dec a
 	; If we've already hit the edge of the playfield, don't move.
-	cp a, 15
+	cp a, 0 + 8
 	jp z, Main
 	ld [_OAMRAM + 1], a
 	jp Main
@@ -110,12 +148,35 @@ Right:
 	; Move the paddle one pixel to the right.
 	ld a, [_OAMRAM + 1]
 	inc a
+	inc a
 	; If we've already hit the edge of the playfield, don't move.
-	cp a, 105
+	cp a, 160 + 8 - 8
 	jp z, Main
 	ld [_OAMRAM + 1], a
 	jp Main
 
+; @param a: coordinate
+; @param b: current direction/speed
+; @param c: lower limit
+; @param d: higher limit 
+CheckBoundsAndUpdateDirection:
+	cp a, c
+	jp z, ChangeDirectionPos
+
+	cp a, d
+	jp z, ChangeDirectionNeg
+
+	ret
+
+ChangeDirectionNeg:
+	ld b, 0;-1; Down
+	
+	ret
+
+ChangeDirectionPos:
+	ld b, 0;1; Down
+
+	ret
 
 SECTION "Counter", WRAM0
 wFrameCounter: db
@@ -123,3 +184,8 @@ wFrameCounter: db
 SECTION "Input Variables", WRAM0
 wCurKeys: db
 wNewKeys: db
+
+SECTION "Player Variables", WRAM0
+wDirectionY: db
+wDirectionX: db
+wMotionMul: db
