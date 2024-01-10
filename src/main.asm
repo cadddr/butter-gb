@@ -77,7 +77,7 @@ SECTION "Header", ROM0[$100]
 	ld [wFrameCounter], a
 	ld a, 1
 	ld [wDirectionY], a ; direction
-	ld a, 1
+	ld a, 2
 	ld [wDirectionX], a ; direction
 	ld a, 15
 	ld [wMotionMul], a
@@ -89,20 +89,21 @@ Main:
 
 	call WaitVBlank
 
-	ld a, [wMotionMul]
-	ld b, a
+	;;; Acceleration, first linearly reduce update interval, then increase step
+	; ld a, [wMotionMul]
+	; ld b, a
 	ld a, [wFrameCounter]
 	inc a
 	ld [wFrameCounter], a
 	
-	cp b ; Every 15 frames (a quarter of a second), run the following code
+	cp a, 15 ;b ; Every 15 frames (a quarter of a second), run the following code
 	jp nz, Main
-	ld a, [wMotionMul]
-	cp a, 1
-	jp z, SkipAcceleration
-	sub a, 1
-	ld [wMotionMul], a
-SkipAcceleration:
+	; ld a, [wMotionMul]
+	; cp a, 1
+; 	jp z, SkipAcceleration
+; 	sub a, 1
+; 	ld [wMotionMul], a
+; SkipAcceleration:
 
 	; Reset the frame counter back to 0
 	ld a, 0
@@ -169,12 +170,12 @@ CheckBoundsAndUpdateDirection:
 	ret
 
 ChangeDirectionNeg:
-	ld b, 0;-1; Down
+	ld b, -1; Down
 	
 	ret
 
 ChangeDirectionPos:
-	ld b, 0;1; Down
+	ld b, 1; Down
 
 	ret
 
