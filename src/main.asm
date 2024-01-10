@@ -75,12 +75,18 @@ SECTION "Header", ROM0[$100]
 
 	ld a, 0
 	ld [wFrameCounter], a
+
 	ld a, 1
-	ld [wDirectionY], a ; direction
+	ld [wVelY], a
+	
 	ld a, 2
-	ld [wDirectionX], a ; direction
-	ld a, 15
-	ld [wMotionMul], a
+	ld [wVelX], a
+	
+	ld a, 8
+	ld [wAccelY], a
+	
+	ld a, 0
+	ld [wAngle], a
 
 Main:
 	ld a, [rLY]
@@ -89,37 +95,56 @@ Main:
 
 	call WaitVBlank
 
-	;;; Acceleration, first linearly reduce update interval, then increase step
-	; ld a, [wMotionMul]
-	; ld b, a
+	;;;;;;;; Refresh rate control
 	ld a, [wFrameCounter]
 	inc a
 	ld [wFrameCounter], a
 	
-	cp a, 15 ;b ; Every 15 frames (a quarter of a second), run the following code
+	cp a, 10 ;b ; Every 15 frames (a quarter of a second), run the following code
 	jp nz, Main
-	; ld a, [wMotionMul]
-	; cp a, 1
-; 	jp z, SkipAcceleration
-; 	sub a, 1
-; 	ld [wMotionMul], a
-; SkipAcceleration:
 
 	; Reset the frame counter back to 0
 	ld a, 0
 	ld [wFrameCounter], a
+	;;;;;;;;
 
-	ld a, [wDirectionY]
+	;;;;;;;; updating Y position and velocity
+	ld a, [wVelY]
 	ld b, a
+
 	ld a, [_OAMRAM ]
-	ld c, 0 + 16 - 8 + 4
-	ld d, 144 + 16 - 8 - 4
-	call CheckBoundsAndUpdateDirection
-	add a, b
-	ld [_OAMRAM], a
+	; ld c, 0 + 16 - 8 + 4
+	; ld d, 144 + 16 - 8 - 4
+	; call CheckBoundsAndUpdateDirection
+	add a, b ; update Y position with velocity value
+	ld [_OAMRAM], a ; write back updated Y position
+
+	;;;; handle angle-dependent acceleration and velocity update
+	; ld c, 0 ; this will be our acceleration (breaking by default)
+	
+	ld a, [wAngle] ; (sin) can be either 0, 1/2, 1
+	; ld d, a      ;                     0/2, 1/2, 2/2
+	
+	cp a, 0
+	jp z, NoAccel
+
+	ld a, [wAccelY] ; base acceleration factor
+	ld c, a
+
+	ld a, [wAngle]
+	cp a, 2
+	jp z, NoDiv
+	; ; divide by 2
+	srl c
+	
+NoDiv:
 	ld a, b
-	; add a, 1
-	ld [wDirectionY], a
+	add a, c ; increment and store velocity value
+NoAccel:
+	ld [wVelY], a
+	;;;;;;;;
+
+	;;;;;;;; X position is controlled with keys
 
 	; Check the current keys every frame and move left or right.
 	call UpdateKeys
@@ -130,14 +155,17 @@ CheckLeft:
 	and a, PADF_LEFT
 	jp z, CheckRight
 Left:
+	ld a, [wAngle]
+	inc a 
+	ld [wAngle], a
 	; Move the paddle one pixel to the left.
-	ld a, [_OAMRAM + 1]
-	dec a
-	dec a
-	; If we've already hit the edge of the playfield, don't move.
-	cp a, 0 + 8
-	jp z, Main
-	ld [_OAMRAM + 1], a
+	; ld a, [_OAMRAM + 1]
+	; dec a
+	; dec a
+	; ; If we've already hit the edge of the playfield, don't move.
+	; cp a, 0 + 8
+	; jp z, Main
+	; ld [_OAMRAM + 1], a
 	jp Main
 
 ; Then check the right button.
@@ -146,14 +174,18 @@ CheckRight:
 	and a, PADF_RIGHT
 	jp z, Main
 Right:
+	ld a, [wAngle]
+	; dec a
+	ld a, 0 
+	ld [wAngle], a
 	; Move the paddle one pixel to the right.
-	ld a, [_OAMRAM + 1]
-	inc a
-	inc a
-	; If we've already hit the edge of the playfield, don't move.
-	cp a, 160 + 8 - 8
-	jp z, Main
-	ld [_OAMRAM + 1], a
+	; ld a, [_OAMRAM + 1]
+	; inc a
+	; inc a
+	; ; If we've already hit the edge of the playfield, don't move.
+	; cp a, 160 + 8 - 8
+	; jp z, Main
+	; ld [_OAMRAM + 1], a
 	jp Main
 
 ; @param a: coordinate
@@ -187,6 +219,7 @@ wCurKeys: db
 wNewKeys: db
 
 SECTION "Player Variables", WRAM0
-wDirectionY: db
-wDirectionX: db
-wMotionMul: db
+wVelY: db
+wVelX: db
+wAccelY: db
+wAngle: db
