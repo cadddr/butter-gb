@@ -128,26 +128,39 @@ Main:
 	;;;; handle angle-dependent acceleration and velocity update for Y
 	; ld c, 0 ; this will be our acceleration (breaking by default)
 	
-	ld a, [wAngle] ; (sin) can be either 0, 1/2, 1
-	               ;                     0/2, 1/2, 2/2
+	;;;
+; 	ld a, [wAngle] ; (sin) can be either 0, 1/2, 1
+; 	               ;                     0/2, 1/2, 2/2
 	
-	cp a, 0
-	jp z, NoAccel ; zero speed, rather
+; 	cp a, 0
+; 	jp z, NoAccel ; zero speed, rather
 
+; 	ld a, [wAccel] ; base acceleration factor
+; 	ld c, a
+
+; 	ld a, [wAngle]
+; 	cp a, 2
+; 	jp z, NoDiv
+; 	; ; divide by 2
+; 	srl c
+	
+; NoDiv:
+; 	ld a, b
+; 	add a, c ; increment and store velocity value
+; NoAccel:
+; 	ld [wVel], a
+	;;;
 	ld a, [wAccel] ; base acceleration factor
 	ld c, a
-
-	ld a, [wAngle]
-	cp a, 2
-	jp z, NoDiv
-	; ; divide by 2
-	srl c
-	
-NoDiv:
+	ld a, [wAngle] ; (sin) can be either 0, 1/2, 1
+	; 	                                0/2, 1/2, 2/2
+	call ApplyProportionalToAngle
+	; a ->
+	ld c, a
 	ld a, b
-	add a, c ; increment and store velocity value
-NoAccel:
+	add a, c
 	ld [wVel], a
+
 	;;;;;;;; distribute main speed to Y and X
 	ld a, [wAngle]
 
@@ -244,6 +257,29 @@ Right:
 	; jp z, Main
 	; ld [_OAMRAM + 1], a
 	jp Main
+
+; @param a: angle as denominator of either 0/2, 1/2, 2/2 
+; @param b: current speed if need to set to zero
+; @param c: base value to be applied proportionally
+; @returns a: either zero or adjusted value
+ApplyProportionalToAngle:
+	cp a, 0
+	jp z, Zero ; zero speed, rather
+
+	cp a, 2
+	jp z, SkipDivide
+	; ; divide by 2
+	srl c
+
+SkipDivide:
+	; ld a, b
+	; add a, c ; increment and store velocity value
+	ld a, c
+	ret ; sets a, keeps b
+Zero:
+	; ld [wVel], a
+	ld b, 0 ; resets b
+	ret	; returns a = wAngle = 0
 
 ; @param a: coordinate
 ; @param b: current direction/speed
