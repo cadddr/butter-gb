@@ -76,20 +76,20 @@ SECTION "Header", ROM0[$100]
 	ld a, 0
 	ld [wFrameCounter], a
 
-	ld a, 1
+	ld a, 0
 	ld [wVel], a
 
-	ld a, 1
+	ld a, 0
 	ld [wVelY], a
 	
-	ld a, 2
+	ld a, 0
 	ld [wVelX], a
 	
 	ld a, 4
-	ld [wAccelY], a
+	ld [wAccel], a
 
-	ld a, 2
-	ld [wAccelX], a
+	; ld a, 2
+	; ld [wAccelX], a
 	
 	ld a, 0
 	ld [wAngle], a
@@ -132,9 +132,9 @@ Main:
 	               ;                     0/2, 1/2, 2/2
 	
 	cp a, 0
-	jp z, NoAccel
+	jp z, NoAccel ; zero speed, rather
 
-	ld a, [wAccelY] ; base acceleration factor
+	ld a, [wAccel] ; base acceleration factor
 	ld c, a
 
 	ld a, [wAngle]
@@ -147,41 +147,60 @@ NoDiv:
 	ld a, b
 	add a, c ; increment and store velocity value
 NoAccel:
-	ld [wVelY], a
-	;;;;;;;;
-
-	;;;;;;;; handle angle-dependent acceleration and velocity update for X
-	ld a, [wVelY]
-	ld b, a
-
-	ld a, [wAngle] ; (sin) can be either 0, 1/2, 1
-				   ; (cos)               2/2  1/2  0/2
-	ld c, a
-	ld a, 2        ; sin -> cos
-	sub a, c
+	ld [wVel], a
+	;;;;;;;; distribute main speed to Y and X
+	ld a, [wAngle]
 
 	cp a, 0
-	jp z, NoAccelX
+	jp z, NoAccelY
 
-	; ld a, [wAccelY] ; base acceleration factor
-	; ld c, a
+	ld a, [wVel] ; main direction velocity
+	ld c, a
 
 	ld a, [wAngle]
 	cp a, 2
-	jp z, NoDivX
+	jp z, NoDivY
 	; ; divide by 2
-	srl b
+	srl c
 	
-NoDivX:
-	; ld a, b
-	; add a, c ; increment and store velocity value
+NoDivY:
+	ld a, c
 
-	; ld [wVelX], a
+NoAccelY:
+	ld [wVelY], a
 
-	ld a, [_OAMRAM + 1]
-	add a, b ; update X position with velocity value
-	ld [_OAMRAM + 1], a ; write back updated X position
-NoAccelX:
+	;;;;;;;; handle angle-dependent acceleration and velocity update for X
+; 	ld a, [wVelY]
+; 	ld b, a
+
+; 	ld a, [wAngle] ; (sin) can be either 0, 1/2, 1
+; 				   ; (cos)               2/2  1/2  0/2
+; 	ld c, a
+; 	ld a, 2        ; sin -> cos
+; 	sub a, c
+
+; 	cp a, 0
+; 	jp z, NoAccelX
+
+; 	; ld a, [wAccelY] ; base acceleration factor
+; 	; ld c, a
+
+; 	ld a, [wAngle]
+; 	cp a, 2
+; 	jp z, NoDivX
+; 	; ; divide by 2
+; 	srl b
+	
+; NoDivX:
+; 	; ld a, b
+; 	; add a, c ; increment and store velocity value
+
+; 	; ld [wVelX], a
+
+; 	ld a, [_OAMRAM + 1]
+; 	add a, b ; update X position with velocity value
+; 	ld [_OAMRAM + 1], a ; write back updated X position
+; NoAccelX:
 	;;;;;;;; X position is controlled with keys
 
 	; Check the current keys every frame and move left or right.
@@ -260,6 +279,7 @@ SECTION "Player Variables", WRAM0
 wVel: db
 wVelY: db
 wVelX: db
-wAccelY: db
-wAccelX: db
+wAccel: db
+; wAccelY: db
+; wAccelX: db
 wAngle: db
