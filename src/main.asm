@@ -106,7 +106,7 @@ Main:
 	inc a
 	ld [wFrameCounter], a
 	
-	cp a, 10 ;b ; Every 15 frames (a quarter of a second), run the following code
+	cp a, 5 ;b ; Every 15 frames (a quarter of a second), run the following code
 	jp nz, Main
 
 	; Reset the frame counter back to 0
