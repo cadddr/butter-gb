@@ -126,30 +126,6 @@ Main:
 	ld [_OAMRAM], a ; write back updated Y position
 
 	;;;; handle angle-dependent acceleration and velocity update for Y
-	; ld c, 0 ; this will be our acceleration (breaking by default)
-	
-	;;;
-; 	ld a, [wAngle] ; (sin) can be either 0, 1/2, 1
-; 	               ;                     0/2, 1/2, 2/2
-	
-; 	cp a, 0
-; 	jp z, NoAccel ; zero speed, rather
-
-; 	ld a, [wAccel] ; base acceleration factor
-; 	ld c, a
-
-; 	ld a, [wAngle]
-; 	cp a, 2
-; 	jp z, NoDiv
-; 	; ; divide by 2
-; 	srl c
-	
-; NoDiv:
-; 	ld a, b
-; 	add a, c ; increment and store velocity value
-; NoAccel:
-; 	ld [wVel], a
-	;;;
 	ld a, [wVel]
 	ld b, a
 	ld a, [wAccel] ; base acceleration factor
@@ -169,56 +145,27 @@ Main:
 	call ApplyProportionalToAngle
 	ld [wVelY], a
 
-; 	cp a, 0
-; 	jp z, NoAccelY
+	;;;;;;;; updating X position and velocity
+	ld a, [wVelX]
+	ld b, a
 
-; 	ld a, [wVel] ; main direction velocity
-; 	ld c, a
+	ld a, [_OAMRAM + 1]
+	add a, b ; update X position with velocity value
+	ld [_OAMRAM + 1], a ; write back updated X position
 
-; 	ld a, [wAngle]
-; 	cp a, 2
-; 	jp z, NoDivY
-; 	; ; divide by 2
-; 	srl c
+	;;;;;;;; handle angle-dependent velocity update for X
+	ld a, [wVel]
+	ld c, a
+
+	ld a, [wAngle] ; (sin) can be either 0, 1/2, 1
+				   ; (cos)               2/2  1/2  0/2
+	ld c, a
+	ld a, 2        ; sin -> cos
+	sub a, c
+
+	call ApplyProportionalToAngle
+	ld [wVelX], a
 	
-; NoDivY:
-; 	ld a, c
-
-; NoAccelY:
-; 	ld [wVelY], a
-
-	;;;;;;;; handle angle-dependent acceleration and velocity update for X
-; 	ld a, [wVelY]
-; 	ld b, a
-
-; 	ld a, [wAngle] ; (sin) can be either 0, 1/2, 1
-; 				   ; (cos)               2/2  1/2  0/2
-; 	ld c, a
-; 	ld a, 2        ; sin -> cos
-; 	sub a, c
-
-; 	cp a, 0
-; 	jp z, NoAccelX
-
-; 	; ld a, [wAccelY] ; base acceleration factor
-; 	; ld c, a
-
-; 	ld a, [wAngle]
-; 	cp a, 2
-; 	jp z, NoDivX
-; 	; ; divide by 2
-; 	srl b
-	
-; NoDivX:
-; 	; ld a, b
-; 	; add a, c ; increment and store velocity value
-
-; 	; ld [wVelX], a
-
-; 	ld a, [_OAMRAM + 1]
-; 	add a, b ; update X position with velocity value
-; 	ld [_OAMRAM + 1], a ; write back updated X position
-; NoAccelX:
 	;;;;;;;; X position is controlled with keys
 
 	; Check the current keys every frame and move left or right.
