@@ -223,13 +223,13 @@ Right:
 
 	ld a, [wAngle]
 	inc a
-	jp NoFlipSign2
+	jp NoFlipSignBack
 
 AngleNegative:
 	ld a, [wAngle]
 	sub a, 1
 
-	jp nc, NoFlipSign2
+	jp nz, NoFlipSignBack
 	ld c, a
 	ld a, 0
 	ld [wAngleNeg], a
@@ -238,7 +238,7 @@ AngleNegative:
 	ld b, 2
 	call ClipByMaximum
 	
-NoFlipSign2:
+NoFlipSignBack:
 	ld [wAngle], a
 
 	jp Main
