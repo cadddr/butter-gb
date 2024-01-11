@@ -85,11 +85,14 @@ SECTION "Header", ROM0[$100]
 	ld a, 0
 	ld [wVelX], a
 	
-	ld a, 4
+	ld a, 2
 	ld [wAccel], a
 	
 	ld a, 0
 	ld [wAngle], a
+
+	ld a, 0
+	ld [wAngleNeg], a
 
 Main:
 	ld a, [rLY]
@@ -146,8 +149,18 @@ Main:
 	ld a, [wVelX]
 	ld b, a
 
+	ld a, [wAngleNeg]
+	cp a, 1
+	jp nc, MoveLeft
+
+MoveRight:
 	ld a, [_OAMRAM + 1]
 	add a, b ; update X position with velocity value
+	jp DoneMove
+MoveLeft:
+	ld a, [_OAMRAM + 1]
+	sub a, b
+DoneMove:
 	ld [_OAMRAM + 1], a ; write back updated X position
 
 	;;;;;;;; handle angle-dependent velocity update for X
@@ -174,17 +187,20 @@ CheckLeft:
 	and a, PADF_LEFT
 	jp z, CheckRight
 Left:
+	; ld a, [wAngleNeg]
+	; cp a, 0
+
 	ld a, [wAngle]
-	inc a 
+	sub a, 1 
+
+	jp nc, NoFlip
+	ld a, 1
+	ld [wAngleNeg], a
+	
+
+NoFlip:
 	ld [wAngle], a
-	; Move the paddle one pixel to the left.
-	; ld a, [_OAMRAM + 1]
-	; dec a
-	; dec a
-	; ; If we've already hit the edge of the playfield, don't move.
-	; cp a, 0 + 8
-	; jp z, Main
-	; ld [_OAMRAM + 1], a
+
 	jp Main
 
 ; Then check the right button.
@@ -194,18 +210,28 @@ CheckRight:
 	jp z, Main
 Right:
 	ld a, [wAngle]
-	; dec a
-	ld a, 0 
+	inc a
+
+	ld b, 2
+	call ClipByMaximum
+	
 	ld [wAngle], a
-	; Move the paddle one pixel to the right.
-	; ld a, [_OAMRAM + 1]
-	; inc a
-	; inc a
-	; ; If we've already hit the edge of the playfield, don't move.
-	; cp a, 160 + 8 - 8
-	; jp z, Main
-	; ld [_OAMRAM + 1], a
+
 	jp Main
+
+; @param a: value to be clipped
+; @param b: max value to clip by
+; @returns a: clipped to max value
+ClipByMaximum:
+	inc b
+	cp a, b
+	dec b
+	jp c, NoClip
+	ld a, b
+
+NoClip:
+	ret
+
 
 ; @param a: angle as denominator of either 0/2, 1/2, 2/2 
 ; @param b: current speed if need to set to zero
@@ -268,3 +294,5 @@ wVelX: db
 
 wAccel: db
 wAngle: db
+
+wAngleNeg: db
