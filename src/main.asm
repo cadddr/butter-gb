@@ -85,7 +85,7 @@ SECTION "Header", ROM0[$100]
 	ld a, 0
 	ld [wVelX], a
 	
-	ld a, 2
+	ld a, 4
 	ld [wAccel], a
 	
 	ld a, 0
@@ -106,7 +106,7 @@ Main:
 	inc a
 	ld [wFrameCounter], a
 	
-	cp a, 5 ;b ; Every 15 frames (a quarter of a second), run the following code
+	cp a, 10 ;b ; Every 15 frames (a quarter of a second), run the following code
 	jp nz, Main
 
 	; Reset the frame counter back to 0
@@ -187,18 +187,26 @@ CheckLeft:
 	and a, PADF_LEFT
 	jp z, CheckRight
 Left:
-	; ld a, [wAngleNeg]
-	; cp a, 0
+	ld a, [wAngleNeg]
+	cp a, 1
+	jp c, AngleNotNegative
 
+	ld a, [wAngle]
+	add a, 1
+	jp NoFlipSign
+
+AngleNotNegative:
 	ld a, [wAngle]
 	sub a, 1 
 
-	jp nc, NoFlip
+	jp nc, NoFlipSign
 	ld a, 1
 	ld [wAngleNeg], a
-	
 
-NoFlip:
+	ld b, 2
+	call ClipByMaximum
+	
+NoFlipSign:
 	ld [wAngle], a
 
 	jp Main
@@ -209,12 +217,28 @@ CheckRight:
 	and a, PADF_RIGHT
 	jp z, Main
 Right:
+	ld a, [wAngleNeg]
+	cp a, 1
+	jp nc, AngleNegative
+
 	ld a, [wAngle]
 	inc a
+	jp NoFlipSign2
+
+AngleNegative:
+	ld a, [wAngle]
+	sub a, 1
+
+	jp nc, NoFlipSign2
+	ld c, a
+	ld a, 0
+	ld [wAngleNeg], a
+	ld a, c
 
 	ld b, 2
 	call ClipByMaximum
 	
+NoFlipSign2:
 	ld [wAngle], a
 
 	jp Main
