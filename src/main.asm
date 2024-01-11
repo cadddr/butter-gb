@@ -156,10 +156,18 @@ Main:
 MoveRight:
 	ld a, [_OAMRAM + 1]
 	add a, b ; update X position with velocity value
+	
+	ld b, 144
+	call ClipByMaximum
+
 	jp DoneMove
 MoveLeft:
 	ld a, [_OAMRAM + 1]
 	sub a, b
+
+	ld b, 20
+	call ClipByMiniimum
+
 DoneMove:
 	ld [_OAMRAM + 1], a ; write back updated X position
 
@@ -250,10 +258,21 @@ ClipByMaximum:
 	inc b
 	cp a, b
 	dec b
-	jp c, NoClip
+	jp c, NoClipMax
 	ld a, b
 
-NoClip:
+NoClipMax:
+	ret
+
+; @param a: value to be clipped
+; @param b: min value to clip by
+; @returns a: clipped to min value
+ClipByMiniimum:
+	cp a, b
+	jp nc, NoClipMin
+	ld a, b
+
+NoClipMin:
 	ret
 
 
