@@ -119,9 +119,9 @@ Main:
 	ld b, a
 
 	ld a, [_OAMRAM ]
-	ld c, 0 + 16 - 8 + 4
-	ld d, 144 + 16 - 8 - 4
-	call CheckBoundsAndUpdateDirection
+	; ld c, 0 + 16 - 8 + 4
+	; ld d, 144 + 16 - 8 - 4
+	; call CheckBoundsAndUpdateDirection
 	add a, b ; update Y position with velocity value
 	ld [_OAMRAM], a ; write back updated Y position
 
@@ -150,37 +150,42 @@ Main:
 ; NoAccel:
 ; 	ld [wVel], a
 	;;;
+	ld a, [wVel]
+	ld b, a
 	ld a, [wAccel] ; base acceleration factor
 	ld c, a
 	ld a, [wAngle] ; (sin) can be either 0, 1/2, 1
 	; 	                                0/2, 1/2, 2/2
 	call ApplyProportionalToAngle
-	; a ->
 	ld c, a
 	ld a, b
 	add a, c
 	ld [wVel], a
 
 	;;;;;;;; distribute main speed to Y and X
-	ld a, [wAngle]
-
-	cp a, 0
-	jp z, NoAccelY
-
 	ld a, [wVel] ; main direction velocity
 	ld c, a
-
 	ld a, [wAngle]
-	cp a, 2
-	jp z, NoDivY
-	; ; divide by 2
-	srl c
-	
-NoDivY:
-	ld a, c
-
-NoAccelY:
+	call ApplyProportionalToAngle
 	ld [wVelY], a
+
+; 	cp a, 0
+; 	jp z, NoAccelY
+
+; 	ld a, [wVel] ; main direction velocity
+; 	ld c, a
+
+; 	ld a, [wAngle]
+; 	cp a, 2
+; 	jp z, NoDivY
+; 	; ; divide by 2
+; 	srl c
+	
+; NoDivY:
+; 	ld a, c
+
+; NoAccelY:
+; 	ld [wVelY], a
 
 	;;;;;;;; handle angle-dependent acceleration and velocity update for X
 ; 	ld a, [wVelY]
