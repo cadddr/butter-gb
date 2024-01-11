@@ -87,9 +87,6 @@ SECTION "Header", ROM0[$100]
 	
 	ld a, 4
 	ld [wAccel], a
-
-	; ld a, 2
-	; ld [wAccelX], a
 	
 	ld a, 0
 	ld [wAngle], a
@@ -159,9 +156,9 @@ Main:
 
 	ld a, [wAngle] ; (sin) can be either 0, 1/2, 1
 				   ; (cos)               2/2  1/2  0/2
-	ld c, a
+	ld d, a
 	ld a, 2        ; sin -> cos
-	sub a, c
+	sub a, d
 
 	call ApplyProportionalToAngle
 	ld [wVelX], a
@@ -265,9 +262,9 @@ wNewKeys: db
 
 SECTION "Player Variables", WRAM0
 wVel: db
+
 wVelY: db
 wVelX: db
+
 wAccel: db
-; wAccelY: db
-; wAccelX: db
 wAngle: db
