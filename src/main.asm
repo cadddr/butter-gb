@@ -94,6 +94,11 @@ SECTION "Header", ROM0[$100]
 	ld a, 0
 	ld [wAngleNeg], a
 
+	ld a, 0
+    ld [mBackgroundScroll+0],a
+    ld a, 0
+    ld [mBackgroundScroll+1],a
+
 Main:
 	ld a, [rLY]
 	cp 144
@@ -113,6 +118,30 @@ Main:
 	ld a, 0
 	ld [wFrameCounter], a
 	;;;;;;;;
+
+	ld a , [mBackgroundScroll+0]
+    add a , 10
+    ld b,a
+    ld [mBackgroundScroll+0], a
+    ld a , [mBackgroundScroll+1]
+    adc a , 0
+    ld c,a
+    ld [mBackgroundScroll+1], a
+
+	  ; Descale our scaled integer 
+    ; shift bits to the right 4 spaces
+    srl c
+    rr b
+    srl c
+    rr b
+    srl c
+    rr b
+    srl c
+    rr b
+
+    ; Use the de-scaled low byte as the backgrounds position
+    ld a,b
+    ld [rSCY], a
 
 	;;;;;;;; updating Y position and velocity
 	ld a, [wVelY]
@@ -339,3 +368,5 @@ wAccel: db
 wAngle: db
 
 wAngleNeg: db
+
+mBackgroundScroll:: dw
