@@ -121,6 +121,7 @@ Main:
 
 	;;;;;;;; updating Y position and velocity
 	ld a, [wVelY]
+	ld [_OAMRAM + 2], a
 	ld b, a
 
 	ld a, [_OAMRAM ]
@@ -331,14 +332,14 @@ ChangeDirectionNeg:
 
 	  ; Descale our scaled integer 
     ; shift bits to the right 4 spaces
-    ; srl c
-    ; rr b
-    ; srl c
-    ; rr b
-    ; srl c
-    ; rr b
-    ; srl c
-    ; rr b
+    srl c
+    rr b
+    srl c
+    rr b
+    srl c
+    rr b
+    srl c
+    rr b
 
     ; Use the de-scaled low byte as the backgrounds position
     ld a,b
