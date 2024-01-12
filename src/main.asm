@@ -125,9 +125,9 @@ Main:
 	ld b, a
 
 	ld a, [_OAMRAM ]
-	ld c, 0 + 16 - 8 + 4
-	ld d, 77 + 16 - 8 - 4
-	call CheckBoundsAndUpdateDirection
+	; ld c, 0 + 16 - 8 + 4
+	; ld d, 77 + 16 - 8 - 4
+	; call CheckBoundsAndUpdateDirection
 	add a, b ; update Y position with velocity value
 	ld [_OAMRAM], a ; write back updated Y position
 
