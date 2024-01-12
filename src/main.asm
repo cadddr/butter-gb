@@ -119,38 +119,14 @@ Main:
 	ld [wFrameCounter], a
 	;;;;;;;;
 
-	ld a , [mBackgroundScroll+0]
-    add a , 10
-    ld b,a
-    ld [mBackgroundScroll+0], a
-    ld a , [mBackgroundScroll+1]
-    adc a , 0
-    ld c,a
-    ld [mBackgroundScroll+1], a
-
-	  ; Descale our scaled integer 
-    ; shift bits to the right 4 spaces
-    srl c
-    rr b
-    srl c
-    rr b
-    srl c
-    rr b
-    srl c
-    rr b
-
-    ; Use the de-scaled low byte as the backgrounds position
-    ld a,b
-    ld [rSCY], a
-
 	;;;;;;;; updating Y position and velocity
 	ld a, [wVelY]
 	ld b, a
 
 	ld a, [_OAMRAM ]
-	; ld c, 0 + 16 - 8 + 4
-	; ld d, 144 + 16 - 8 - 4
-	; call CheckBoundsAndUpdateDirection
+	ld c, 0 + 16 - 8 + 4
+	ld d, 77 + 16 - 8 - 4
+	call CheckBoundsAndUpdateDirection
 	add a, b ; update Y position with velocity value
 	ld [_OAMRAM], a ; write back updated Y position
 
@@ -337,13 +313,39 @@ CheckBoundsAndUpdateDirection:
 	jp z, ChangeDirectionPos
 
 	cp a, d
-	jp z, ChangeDirectionNeg
+	jp nc, ChangeDirectionNeg
 
 	ret
 
 ChangeDirectionNeg:
-	ld b, -1; Down
+	ld e, a
+	; ld b, -1; Down
+	ld a , [mBackgroundScroll+0]
+    add a , b
+    ld b,a
+    ld [mBackgroundScroll+0], a
+    ld a , [mBackgroundScroll+1]
+    adc a , 0
+    ld c,a
+    ld [mBackgroundScroll+1], a
+
+	  ; Descale our scaled integer 
+    ; shift bits to the right 4 spaces
+    srl c
+    rr b
+    srl c
+    rr b
+    srl c
+    rr b
+    srl c
+    rr b
+
+    ; Use the de-scaled low byte as the backgrounds position
+    ld a,b
+    ld [rSCY], a
 	
+	ld b, 0
+	ld a, e
 	ret
 
 ChangeDirectionPos:
