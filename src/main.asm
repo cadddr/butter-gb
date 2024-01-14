@@ -64,7 +64,7 @@ SECTION "Header", ROM0[$100]
 	ld [hl], a
 
 	; Turn the LCD on
-	ld a, LCDCF_ON | LCDCF_BGON | LCDCF_OBJON | LCDCF_OBJ16
+	ld a, LCDCF_ON | LCDCF_BGON | LCDCF_OBJON ;| LCDCF_OBJ16
 	ld [rLCDC], a
 
 	; During the first (blank) frame, initialize display registers
@@ -121,7 +121,6 @@ Main:
 
 	;;;;;;;; updating Y position and velocity
 	ld a, [wVelY]
-	ld [_OAMRAM + 2], a
 	ld b, a
 
 	ld a, [_OAMRAM ]
@@ -214,15 +213,20 @@ AngleNotNegative:
 	sub a, 1 
 
 	jp nc, NoFlipSign
-	ld a, 1
+	ld a, 1 ; flip to 1 but also normalize ff into 1 with negative angle
 	ld [wAngleNeg], a
 
-	ld b, 2
-	call ClipByMaximum
+	ld c, a
+	ld a, $20 ; mirror sprite
+	ld [_OAMRAM + 3], a
+	ld a, c
+
+	; ld b, 2
+	; call ClipByMaximum
 	
 NoFlipSign:
 	ld [wAngle], a
-
+	ld [_OAMRAM + 2], a ; sprite = angle
 	jp Main
 
 ; Then check the right button.
@@ -244,17 +248,19 @@ AngleNegative:
 	sub a, 1
 
 	jp nz, NoFlipSignBack
-	ld c, a
-	ld a, 0
+	ld c, a ; store angle in c temporarily
+	ld a, 0 ; flip to 0
 	ld [wAngleNeg], a
-	ld a, c
+	ld a, $00 ; mirror sprite
+	ld [_OAMRAM + 3], a
+	ld a, c ; restore angle from c
 
-	ld b, 2
-	call ClipByMaximum
+	; ld b, 2
+	; call ClipByMaximum
 	
 NoFlipSignBack:
 	ld [wAngle], a
-
+	ld [_OAMRAM + 2], a ; sprite = angle
 	jp Main
 
 ; @param a: value to be clipped
