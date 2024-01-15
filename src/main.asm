@@ -126,126 +126,96 @@ Main:
 	SkipNonKeyFrames ; only update every few frames
 	
 	call UpdatePositionY
-	;;;; handle angle-dependent acceleration and velocity update for Y
-	ld a, [wVel]
-	ld b, a
+	call UpdatePositionX
+
+	;;;; handle angle-dependent acceleration and velocity update
 	ld a, [wAccel] ; base acceleration factor
 	ld c, a
-	ld a, [wAngle] ; (sin) can be either 0, 1/2, 1
-	; 	                                0/2, 1/2, 2/2
+	ld a, [wVel]
+	ld b, a
+	ld a, [wAngle] ; (sin) can be either 0/2, 1/2, 2/2                       
 	call ApplyProportionalToAngle
 	ld c, a
 	ld a, b
 	add a, c
 	ld [wVel], a
 
-	;;;;;;;; distribute main speed to Y and X
+	;;;;;;;; distribute main speed to Y
 	ld a, [wVel] ; main direction velocity
 	ld c, a
-	ld a, [wAngle]
+	ld a, [wAngle] ; (sin) can be either 0/2, 1/2, 2/2
 	call ApplyProportionalToAngle
 	ld [wVelY], a
 
-	;;;;;;;; updating X position and velocity
-	ld a, [wVelX]
-	ld b, a
-
-	ld a, [wAngleNeg]
-	cp a, 1
-	jp nc, MoveLeft
-
-MoveRight:
-	ld a, [_OAMRAM + 1]
-	add a, b ; update X position with velocity value
-	
-	ld b, 144
-	call ClipByMaximum
-
-	jp DoneMove
-MoveLeft:
-	ld a, [_OAMRAM + 1]
-	sub a, b
-
-	ld b, 20
-	call ClipByMiniimum
-
-DoneMove:
-	ld [_OAMRAM + 1], a ; write back updated X position
-
-	;;;;;;;; handle angle-dependent velocity update for X
+	;;;;;;;; distribute main speed to X
 	ld a, [wVel]
 	ld c, a
+	ld a, [wAngle] ; (sin) can be either 0/2, 1/2, 2/2 
 
-	ld a, [wAngle] ; (sin) can be either 0, 1/2, 1
-				   ; (cos)               2/2  1/2  0/2
 	ld d, a
-	ld a, 2        ; sin -> cos
-	sub a, d
+	ld a, 2        
+	sub a, d ; (sin) -> (cos) can be either 2/2,  1/2,  0/2
 
 	call ApplyProportionalToAngle
 	ld [wVelX], a
 	
-	;;;;;;;; X position is controlled with keys
-
-	; Check the current keys every frame and move left or right.
+	; arrow buttons control snowboard angle to the slope which in turn affects acceleration and direction
 	call UpdateKeys
 
-	; First, check if the left button is pressed.
 CheckLeft:
 	ld a, [wCurKeys]
 	and a, PADF_LEFT
 	jp z, CheckRight
 Left:
-	ld a, [wAngleNeg]
+	ld a, [wAngleNeg] ; first check angle sign
 	cp a, 1
 	jp c, AngleNotNegative
 
 	ld a, [wAngle]
-	add a, 1
+	add a, 1 ; for negative angles, left key increases them
 	jp NoFlipSign
 
 AngleNotNegative:
 	ld a, [wAngle]
-	sub a, 1 
+	sub a, 1 ; for positive angles (including 0), left key reduces them
 
-	jp nc, NoFlipSign
+	jp nc, NoFlipSign ; check if gone below zero
 	ld a, 1 ; flip to 1 but also normalize ff into 1 with negative angle
 	ld [wAngleNeg], a
 
-	ld c, a
-	ld a, $20 ; mirror sprite
+	ld c, a ; store angle
+	ld a, $20 ; mirror sprite along X (5th bit)
 	ld [_OAMRAM + 3], a
-	ld a, c
+	ld a, c ; restore angle
 
 	; ld b, 2
-	; call ClipByMaximum
+	; call ClipByMaximum ; disable for now as it's amusing to watch animation cycling through random tiles 
 	
 NoFlipSign:
 	ld [wAngle], a
-	ld [_OAMRAM + 2], a ; sprite = angle
+	ld [_OAMRAM + 2], a ; update tile to match updated angle
 	jp Main
 
-; Then check the right button.
 CheckRight:
 	ld a, [wCurKeys]
 	and a, PADF_RIGHT
 	jp z, Main
 Right:
-	ld a, [wAngleNeg]
+	ld a, [wAngleNeg] ; I'm once again asking you to check angle sign
 	cp a, 1
 	jp nc, AngleNegative
 
 	ld a, [wAngle]
-	inc a
+	inc a ; for positive angles (including 0), right arrow increases them
 	jp NoFlipSignBack
 
 AngleNegative:
 	ld a, [wAngle]
-	sub a, 1
+	sub a, 1 ; for negative angles, right key increases them
 
-	jp nz, NoFlipSignBack
+	jp nz, NoFlipSignBack ; check if gone below zero
 	ld c, a ; store angle in c temporarily
-	ld a, 0 ; flip to 0
+	ld a, 0 ; flip angle sign back to 0
 	ld [wAngleNeg], a
 	ld a, $00 ; mirror sprite
 	ld [_OAMRAM + 3], a
@@ -256,58 +226,11 @@ AngleNegative:
 	
 NoFlipSignBack:
 	ld [wAngle], a
-	ld [_OAMRAM + 2], a ; sprite = angle
+	ld [_OAMRAM + 2], a ; update tile to match updated angle
 	jp Main
 
-; @param a: value to be clipped
-; @param b: max value to clip by
-; @returns a: clipped to max value
-ClipByMaximum:
-	inc b
-	cp a, b
-	dec b
-	jp c, NoClipMax
-	ld a, b
 
-NoClipMax:
-	ret
-
-; @param a: value to be clipped
-; @param b: min value to clip by
-; @returns a: clipped to min value
-ClipByMiniimum:
-	cp a, b
-	jp nc, NoClipMin
-	ld a, b
-
-NoClipMin:
-	ret
-
-
-; @param a: angle as denominator of either 0/2, 1/2, 2/2 
-; @param b: current speed if need to set to zero
-; @param c: base value to be applied proportionally
-; @returns a: either zero or adjusted value
-ApplyProportionalToAngle:
-	cp a, 0
-	jp z, Zero ; zero speed, rather
-
-	cp a, 2
-	jp z, SkipDivide
-	; ; divide by 2
-	srl c
-
-SkipDivide:
-	; ld a, b
-	; add a, c ; increment and store velocity value
-	ld a, c
-	ret ; sets a, keeps b
-Zero:
-	; ld [wVel], a
-	ld b, 0 ; resets b
-	ret	; returns a = wAngle = 0
-
-
+; @
 UpdatePositionY:
 	ld a, [wVelY] ; current Y velocity (absolute)
 	ld b, a
@@ -324,6 +247,35 @@ UpdatePositionY:
 .ScrollDown:
 	call ScrollBackgroundY
 	ret
+
+; @
+UpdatePositionX:
+	ld a, [wVelX]
+	ld b, a
+
+	ld a, [wAngleNeg]
+	cp a, 1
+	jp nc, .MoveLeft
+
+.MoveRight:
+	ld a, [_OAMRAM + 1]
+	add a, b ; update X position with velocity value
+
+	ld b, 144
+	call ClipByMaximum
+
+	ld [_OAMRAM + 1], a ; write back updated X position
+	ret 
+
+.MoveLeft:
+	ld a, [_OAMRAM + 1]
+	sub a, b ; update X position in negative directionwith velocity value
+
+	ld b, 20
+	call ClipByMinimum ; TODO this one is buggy
+
+	ld [_OAMRAM + 1], a ; write back updated X position
+	ret 
 
 
 ; @param b: how much to scroll by
@@ -354,6 +306,53 @@ ScrollBackgroundY:
     ld [rSCY], a
 	
 	ret
+
+
+; @param a: value to be clipped
+; @param b: max value to clip by
+; @returns a: clipped to max value
+ClipByMaximum:
+	inc b
+	cp a, b
+	dec b
+	jp c, NoClipMax
+	ld a, b
+
+NoClipMax:
+	ret
+
+; @param a: value to be clipped
+; @param b: min value to clip by
+; @returns a: clipped to min value
+ClipByMinimum:
+	cp a, b
+	jp nc, NoClipMin
+	ld a, b
+
+NoClipMin:
+	ret
+
+
+; @param a: angle as denominator of either 0/2, 1/2, 2/2 
+; @param b: current speed if need to set to zero
+; @param c: base value to be applied proportionally
+; @returns a: either zero or adjusted value of c
+; @returns b: either kept or reset to zero
+ApplyProportionalToAngle:
+	cp a, 0
+	jp z, Zero
+
+	cp a, 2
+	jp z, SkipDivide
+	; divide by 2
+	srl c
+
+SkipDivide:
+	ld a, c
+	ret ; sets a, keeps b
+Zero:
+	ld b, 0 ; resets b
+	ret	; returns a = wAngle = 0
 
 
 SECTION "Counter", WRAM0
