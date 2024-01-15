@@ -125,16 +125,7 @@ Main:
 	call WaitVBlank
 	SkipNonKeyFrames ; only update every few frames
 	
-	;;;;;;;; updating Y position and velocity
-	ld a, [wVelY] ; current Y velocity (absolute)
-	ld b, a
-	ld a, [_OAMRAM ] ; current Y coordinate
-	ld c, TileTopY; lower bound - double sprite height plus half
-	ld d, TileMiddleY; upper bound - middle of screen plus double sprite height less half
-	call CheckBoundsAndScrollBackground ; this now actually scrolls background at given velocity
-	add a, b ; update Y position with velocity value
-	ld [_OAMRAM], a ; write back updated Y position
-
+	call UpdatePositionY
 	;;;; handle angle-dependent acceleration and velocity update for Y
 	ld a, [wVel]
 	ld b, a
@@ -316,6 +307,25 @@ Zero:
 	ld b, 0 ; resets b
 	ret	; returns a = wAngle = 0
 
+
+UpdatePositionY:
+	ld a, [wVelY] ; current Y velocity (absolute)
+	ld b, a
+
+	ld a, [_OAMRAM ] ; current Y coordinate
+	cp a, TileMiddleY
+	jp nc, .ScrollDown
+
+	ld a, [_OAMRAM ]
+	add a, b ; update Y position with velocity value
+	ld [_OAMRAM], a ; write back updated Y position
+	ret
+	
+.ScrollDown:
+	call ScrollBackgroundY
+	ret
+
+
 ; @param b: how much to scroll by
 ScrollBackgroundY:
 	ld a, [mBackgroundScroll+0]
@@ -344,42 +354,6 @@ ScrollBackgroundY:
     ld [rSCY], a
 	
 	ret
-
-; @param a: current coordinate
-; @param b: current velocity
-; @param c: lower limit
-; @param d: higher limit 
-CheckBoundsAndScrollBackground:
-	cp a, c
-	jp z, ScrollUp
-
-	cp a, d
-	jp nc, ScrollDown ; if current coordinate >= higher limit
-
-	ret ; if neither, will simply add velocity to position
-
-ScrollDown:
-	ld e, a ; store coordinate
-
-	call ScrollBackgroundY
-	
-	ld b, 0 ; reset velocity if scroll happens
-	ld a, e ; restore coordinate
-	ret
-
-ScrollUp: 
-	; TODO
-	ret
-
-UpdatePositionY:
-	ld a, [wVelY] ; current Y velocity (absolute)
-	ld b, a
-	ld a, [_OAMRAM ] ; current Y coordinate
-	ld c, TileTopY; lower bound - double sprite height plus half
-	ld d, TileMiddleY; upper bound - middle of screen plus double sprite height less half
-	call CheckBoundsAndScrollBackground ; this now actually scrolls background at given velocity
-	add a, b ; update Y position with velocity value
-	ld [_OAMRAM], a ; write back updated Y position
 
 
 SECTION "Counter", WRAM0
