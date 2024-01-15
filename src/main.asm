@@ -206,7 +206,7 @@ Right:
 	jp nc, AngleNegative
 
 	ld a, [wAngle]
-	inc a ; for positive angles (including 0), right arrow increases them
+	add a, 1 ; for positive angles (including 0), right arrow increases them
 	jp NoFlipSignBack
 
 AngleNegative:
@@ -218,15 +218,25 @@ AngleNegative:
 	ld a, 0 ; flip angle sign back to 0
 	ld [wAngleNeg], a
 	
-	
+
 	ld a, $00 ; mirror tile along X (reset 5th bit)
 	ld [_OAMRAM + 3], a
 	ld a, c ; restore angle from c
 
-	ld b, 2
-	call ClipByMaximum
+	; ld b, 2
+	; call ClipByMaximum
 	
 NoFlipSignBack:
+	cp a, 2 + 1
+	jp c, NoPivot
+	ld a, 1
+	ld [wAngleNeg], a
+
+	ld c, a ; store angle
+	ld a, $20 ; mirror tile along X (set 5th bit)
+	ld [_OAMRAM + 3], a
+	ld a, c ; restore angle
+NoPivot:
 	ld [wAngle], a
 	ld [_OAMRAM + 2], a ; update tile to match updated angle
 	jp Main
