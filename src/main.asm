@@ -124,9 +124,6 @@ Main:
 	call WaitBeforeVBlank
 	call WaitVBlank
 	SkipNonKeyFrames ; only update every few frames
-	
-	call UpdatePositionY
-	call UpdatePositionX
 
 	;;;; handle angle-dependent acceleration and velocity update
 	ld a, [wAccel] ; base acceleration factor
@@ -158,7 +155,9 @@ Main:
 
 	call ApplyProportionalToAngle
 	ld [wVelX], a
-	
+	;;;;
+	call UpdatePositionY
+	call UpdatePositionX
 	; arrow buttons control snowboard angle to the slope which in turn affects acceleration and direction
 	call UpdateKeys
 
@@ -189,8 +188,8 @@ AngleNotNegative:
 	ld [_OAMRAM + 3], a
 	ld a, c ; restore angle
 
-	; ld b, 2
-	; call ClipByMaximum ; disable for now as it's amusing to watch animation cycling through random tiles 
+	ld b, 2
+	call ClipByMaximum ; disable for now as it's amusing to watch animation cycling through random tiles 
 	
 NoFlipSign:
 	ld [wAngle], a
@@ -224,8 +223,8 @@ AngleNegative:
 	ld [_OAMRAM + 3], a
 	ld a, c ; restore angle from c
 
-	; ld b, 2
-	; call ClipByMaximum
+	ld b, 2
+	call ClipByMaximum
 	
 NoFlipSignBack:
 	ld [wAngle], a
