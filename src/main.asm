@@ -338,14 +338,14 @@ ChangeDirectionNeg:
 
 	  ; Descale our scaled integer 
     ; shift bits to the right 4 spaces
-    srl c
-    rr b
-    srl c
-    rr b
-    srl c
-    rr b
-    srl c
-    rr b
+    ; srl c
+    ; rr b
+    ; srl c
+    ; rr b
+    ; srl c
+    ; rr b
+    ; srl c
+    ; rr b
 
     ; Use the de-scaled low byte as the backgrounds position
     ld a,b
