@@ -5,6 +5,11 @@ INCLUDE "hardware.inc/hardware.inc"
 INCLUDE "utils.inc"
 INCLUDE "tiles.inc"
 
+DEF ScreenHeight EQU 144 
+DEF TileHeight EQU 8
+DEF TileTopY EQU 2 * TileHeight - TileHeight - TileHeight / 2 
+DEF TileMiddleY EQU ScreenHeight / 2 + 2 * TileHeight - TileHeight - TileHeight / 2 
+
 SECTION "Header", ROM0[$100]
 
 	; This is your ROM's entry point
@@ -68,11 +73,12 @@ SECTION "Header", ROM0[$100]
 	ld [rLCDC], a
 
 	; During the first (blank) frame, initialize display registers
-	ld a, %11100100
+	ld a, %11100100 ; palette
 	ld [rBGP], a
 	ld [rOBP0], a
 	ld [rOBP1], a
 
+;;;;;;;; VARIABLES INIT
 	ld a, 0
 	ld [wFrameCounter], a
 
@@ -99,34 +105,33 @@ SECTION "Header", ROM0[$100]
     ld a, 0
     ld [mBackgroundScroll+1],a
 
-Main:
-	ld a, [rLY]
-	cp 144
-	jp nc, Main
+;;;;;;;; END VARIABLES INIT
 
-	call WaitVBlank
-
-	;;;;;;;; Refresh rate control
+macro SkipNonKeyFrames ; macro used to allow jump to Main
 	ld a, [wFrameCounter]
 	inc a
 	ld [wFrameCounter], a
 	
-	cp a, 5 ;b ; Every 15 frames (a quarter of a second), run the following code
+	cp a, 5 ; Every 15 frames (a quarter of a second), run the following code
 	jp nz, Main
 
 	; Reset the frame counter back to 0
 	ld a, 0
 	ld [wFrameCounter], a
-	;;;;;;;;
+endm
 
+Main:
+	call WaitBeforeVBlank
+	call WaitVBlank
+	SkipNonKeyFrames ; only update every few frames
+	
 	;;;;;;;; updating Y position and velocity
-	ld a, [wVelY]
+	ld a, [wVelY] ; current Y velocity (absolute)
 	ld b, a
-
-	ld a, [_OAMRAM ]
-	ld c, 0 + 16 - 8 + 4
-	ld d, 77 + 16 - 8 - 4
-	call CheckBoundsAndUpdateDirection
+	ld a, [_OAMRAM ] ; current Y coordinate
+	ld c, TileTopY; lower bound - double sprite height plus half
+	ld d, TileMiddleY; upper bound - middle of screen plus double sprite height less half
+	call CheckBoundsAndScrollBackground ; this now actually scrolls background at given velocity
 	add a, b ; update Y position with velocity value
 	ld [_OAMRAM], a ; write back updated Y position
 
@@ -311,32 +316,19 @@ Zero:
 	ld b, 0 ; resets b
 	ret	; returns a = wAngle = 0
 
-; @param a: coordinate
-; @param b: current direction/speed
-; @param c: lower limit
-; @param d: higher limit 
-CheckBoundsAndUpdateDirection:
-	cp a, c
-	jp z, ChangeDirectionPos
-
-	cp a, d
-	jp nc, ChangeDirectionNeg
-
-	ret
-
-ChangeDirectionNeg:
-	ld e, a
-	; ld b, -1; Down
-	ld a , [mBackgroundScroll+0]
-    add a , b
-    ld b,a
+; @param b: how much to scroll by
+ScrollBackgroundY:
+	ld a, [mBackgroundScroll+0]
+    add a, b
+    ld b, a
     ld [mBackgroundScroll+0], a
-    ld a , [mBackgroundScroll+1]
-    adc a , 0
-    ld c,a
+    ld a, [mBackgroundScroll+1]
+    adc a, 0
+    ld c, a
     ld [mBackgroundScroll+1], a
 
-	  ; Descale our scaled integer 
+	;;; TODO: with scaling on, scroll speed is out of sync with velocity
+	; Descale our scaled integer 
     ; shift bits to the right 4 spaces
     ; srl c
     ; rr b
@@ -348,20 +340,50 @@ ChangeDirectionNeg:
     ; rr b
 
     ; Use the de-scaled low byte as the backgrounds position
-    ld a,b
+    ld a, b
     ld [rSCY], a
 	
-	ld b, 0
-	ld a, e
 	ret
 
-ChangeDirectionPos:
-	ld b, 1; Down
+; @param a: current coordinate
+; @param b: current velocity
+; @param c: lower limit
+; @param d: higher limit 
+CheckBoundsAndScrollBackground:
+	cp a, c
+	jp z, ScrollUp
 
+	cp a, d
+	jp nc, ScrollDown ; if current coordinate >= higher limit
+
+	ret ; if neither, will simply add velocity to position
+
+ScrollDown:
+	ld e, a ; store coordinate
+
+	call ScrollBackgroundY
+	
+	ld b, 0 ; reset velocity if scroll happens
+	ld a, e ; restore coordinate
 	ret
+
+ScrollUp: 
+	; TODO
+	ret
+
+UpdatePositionY:
+	ld a, [wVelY] ; current Y velocity (absolute)
+	ld b, a
+	ld a, [_OAMRAM ] ; current Y coordinate
+	ld c, TileTopY; lower bound - double sprite height plus half
+	ld d, TileMiddleY; upper bound - middle of screen plus double sprite height less half
+	call CheckBoundsAndScrollBackground ; this now actually scrolls background at given velocity
+	add a, b ; update Y position with velocity value
+	ld [_OAMRAM], a ; write back updated Y position
+
 
 SECTION "Counter", WRAM0
-wFrameCounter: db
+wFrameCounter: db ; if changed to ds 0 appears to give scaled refresh
 
 SECTION "Input Variables", WRAM0
 wCurKeys: db

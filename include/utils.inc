@@ -6,9 +6,18 @@ SECTION "Utils", ROM0
 WaitVBlank:
 	ld a, [rLY]
 	cp 144
-	jp c, WaitVBlank
+	jp c, WaitVBlank ; while rLY < 144
 
-    ret
+  ret
+
+; why need two of them?
+
+WaitBeforeVBlank:
+	ld a, [rLY]
+	cp 144
+	jp nc, WaitBeforeVBlank ; while rLY >= 144
+
+  ret
 
 ; Copy bytes from one area to another.
 ; @param de: Source
