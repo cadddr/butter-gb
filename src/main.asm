@@ -180,11 +180,12 @@ AngleNotNegative:
 	sub a, 1 ; for positive angles (including 0), left key reduces them
 
 	jp nc, NoFlipSign ; check if gone below zero
+	
 	ld a, 1 ; flip to 1 but also normalize ff into 1 with negative angle
 	ld [wAngleNeg], a
 
 	ld c, a ; store angle
-	ld a, $20 ; mirror sprite along X (5th bit)
+	ld a, $20 ; mirror tile along X (set 5th bit)
 	ld [_OAMRAM + 3], a
 	ld a, c ; restore angle
 
@@ -213,11 +214,13 @@ AngleNegative:
 	ld a, [wAngle]
 	sub a, 1 ; for negative angles, right key increases them
 
-	jp nz, NoFlipSignBack ; check if gone below zero
+	jp nz, NoFlipSignBack ; check if gone to or below zero
 	ld c, a ; store angle in c temporarily
 	ld a, 0 ; flip angle sign back to 0
 	ld [wAngleNeg], a
-	ld a, $00 ; mirror sprite
+	
+	
+	ld a, $00 ; mirror tile along X (reset 5th bit)
 	ld [_OAMRAM + 3], a
 	ld a, c ; restore angle from c
 
