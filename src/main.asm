@@ -271,7 +271,7 @@ UpdatePositionY:
 	ret
 	
 .ScrollDown:
-	; call ScrollBackgroundY
+	call ScrollBackgroundY
 	ret
 
 ; @
