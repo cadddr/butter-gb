@@ -79,8 +79,8 @@ SECTION "Header", ROM0[$100]
 	ld [rOBP1], a
 
 ;;;;;;;; VARIABLES INIT
-	ld a, 0
-	ld [wFrameCounter], a
+	; ld a, 0
+	; ld [wFrameCounter], a
 
 	ld a, 0
 	ld [wVel], a
@@ -112,7 +112,7 @@ macro SkipNonKeyFrames ; macro used to allow jump to Main
 	inc a
 	ld [wFrameCounter], a
 	
-	cp a, 5 ; Every 15 frames (a quarter of a second), run the following code
+	cp a, 10 ; Every 15 frames (a quarter of a second), run the following code
 	jp nz, Main
 
 	; Reset the frame counter back to 0
@@ -179,19 +179,17 @@ AngleNotNegative:
 	sub a, 1 ; for positive angles (including 0), left key reduces them
 
 	jp nc, NoFlipSign ; check if gone below zero
-	
-	ld a, 1 ; flip to 1 but also normalize ff into 1 with negative angle
-	ld [wAngleNeg], a
+	call FlipAngleSignToNegative
 
-	ld c, a ; store angle
-	ld a, $20 ; mirror tile along X (set 5th bit)
-	ld [_OAMRAM + 3], a
-	ld a, c ; restore angle
-
-	ld b, 2
-	call ClipByMaximum ; disable for now as it's amusing to watch animation cycling through random tiles 
+	; ld b, 2
+	; call ClipByMaximum ; disable for now as it's amusing to watch animation cycling through random tiles 
 	
 NoFlipSign:
+	cp a, 2 + 1
+	jp c, NoPivotRight
+	call FlipAngleSignToPositive ; 0 is considered positive
+	ld a, 1 ; above function only modifies sign but to pivot also need to set angle to 1
+NoPivotRight:
 	ld [wAngle], a
 	ld [_OAMRAM + 2], a ; update tile to match updated angle
 	jp Main
@@ -214,33 +212,44 @@ AngleNegative:
 	sub a, 1 ; for negative angles, right key increases them
 
 	jp nz, NoFlipSignBack ; check if gone to or below zero
-	ld c, a ; store angle in c temporarily
-	ld a, 0 ; flip angle sign back to 0
-	ld [wAngleNeg], a
-	
-
-	ld a, $00 ; mirror tile along X (reset 5th bit)
-	ld [_OAMRAM + 3], a
-	ld a, c ; restore angle from c
+	call FlipAngleSignToPositive
 
 	; ld b, 2
 	; call ClipByMaximum
 	
 NoFlipSignBack:
 	cp a, 2 + 1
-	jp c, NoPivot
-	ld a, 1
+	jp c, NoPivotLeft
+	call FlipAngleSignToNegative ; also sets angle to 1
+
+NoPivotLeft:
+	ld [wAngle], a
+	ld [_OAMRAM + 2], a ; update tile to match updated angle
+	jp Main
+
+
+; @
+FlipAngleSignToPositive:
+	ld c, a ; store angle in c temporarily
+	ld a, 0 ; flip angle sign back to 0
+	ld [wAngleNeg], a
+	
+	ld a, $00 ; mirror tile along X (reset 5th bit)
+	ld [_OAMRAM + 3], a
+	ld a, c ; restore angle from c
+
+	ret
+; @
+FlipAngleSignToNegative:
+	ld a, 1 ; flip to 1, possibly also normalize ff into 1 with negative angle
 	ld [wAngleNeg], a
 
 	ld c, a ; store angle
 	ld a, $20 ; mirror tile along X (set 5th bit)
 	ld [_OAMRAM + 3], a
 	ld a, c ; restore angle
-NoPivot:
-	ld [wAngle], a
-	ld [_OAMRAM + 2], a ; update tile to match updated angle
-	jp Main
 
+	ret ; a = wAngle = wAngleNeg = 1 as that's the only possible absolute value when going from pos to neg
 
 ; @
 UpdatePositionY:
@@ -368,7 +377,7 @@ Zero:
 
 
 SECTION "Counter", WRAM0
-wFrameCounter: db ; if changed to ds 0 appears to give scaled refresh
+wFrameCounter: ds 0 ; if changed to ds 0 appears to give scaled refresh
 
 SECTION "Input Variables", WRAM0
 wCurKeys: db
