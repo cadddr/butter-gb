@@ -5,10 +5,12 @@ INCLUDE "hardware.inc/hardware.inc"
 INCLUDE "utils.inc"
 INCLUDE "tiles.inc"
 
+DEF UpdateEveryFrames EQU 10
 DEF ScreenHeight EQU 144 
 DEF TileHeight EQU 8
 DEF TileTopY EQU 2 * TileHeight - TileHeight - TileHeight / 2 
 DEF TileMiddleY EQU ScreenHeight / 2 + 2 * TileHeight - TileHeight - TileHeight / 2 
+
 
 SECTION "Header", ROM0[$100]
 
@@ -79,8 +81,8 @@ SECTION "Header", ROM0[$100]
 	ld [rOBP1], a
 
 ;;;;;;;; VARIABLES INIT
-	; ld a, 0
-	; ld [wFrameCounter], a
+	ld a, 0
+	ld [wFrameCounter], a
 
 	ld a, 0
 	ld [wVel], a
@@ -112,7 +114,7 @@ macro SkipNonKeyFrames ; macro used to allow jump to Main
 	inc a
 	ld [wFrameCounter], a
 	
-	cp a, 10 ; Every 15 frames (a quarter of a second), run the following code
+	cp a, UpdateEveryFrames; Every 15 frames (a quarter of a second), run the following code
 	jp nz, Main
 
 	; Reset the frame counter back to 0
@@ -181,9 +183,6 @@ AngleNotNegative:
 	jp nc, NoFlipSign ; check if gone below zero
 	call FlipAngleSignToNegative
 
-	; ld b, 2
-	; call ClipByMaximum ; disable for now as it's amusing to watch animation cycling through random tiles 
-	
 NoFlipSign:
 	cp a, 2 + 1
 	jp c, NoPivotRight
@@ -213,9 +212,6 @@ AngleNegative:
 
 	jp nz, NoFlipSignBack ; check if gone to or below zero
 	call FlipAngleSignToPositive
-
-	; ld b, 2
-	; call ClipByMaximum
 	
 NoFlipSignBack:
 	cp a, 2 + 1
@@ -239,6 +235,7 @@ FlipAngleSignToPositive:
 	ld a, c ; restore angle from c
 
 	ret
+
 ; @
 FlipAngleSignToNegative:
 	ld a, 1 ; flip to 1, possibly also normalize ff into 1 with negative angle
@@ -377,7 +374,7 @@ Zero:
 
 
 SECTION "Counter", WRAM0
-wFrameCounter: ds 0 ; if changed to ds 0 appears to give scaled refresh
+wFrameCounter: db ; if changed to ds 0 appears to give scaled refresh
 
 SECTION "Input Variables", WRAM0
 wCurKeys: db
