@@ -283,7 +283,7 @@ UpdatePositionY:
 	ld b, a
 
 	ld a, [_OAMRAM ] ; current Y coordinate
-	cp a, TileMiddleY
+	cp a, TileMiddleY + 77
 	jp nc, .ScrollDown
 
 	ld a, [_OAMRAM ]
