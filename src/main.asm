@@ -5,7 +5,7 @@ INCLUDE "hardware.inc/hardware.inc"
 INCLUDE "utils.inc"
 INCLUDE "tiles.inc"
 
-DEF UpdateEveryFrames EQU 10
+DEF UpdateEveryFrames EQU 5
 DEF ScreenHeight EQU 144 
 DEF TileHeight EQU 8
 DEF TileTopY EQU 2 * TileHeight - TileHeight - TileHeight / 2 
