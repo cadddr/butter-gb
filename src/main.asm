@@ -84,6 +84,9 @@ SECTION "Header", ROM0[$100]
 	ld a, 0
 	ld [wFrameCounter], a
 
+	ld a, 1
+	ld [wObjectCounter], a
+
 	ld a, 0
 	ld [wVel], a
 
@@ -107,6 +110,8 @@ SECTION "Header", ROM0[$100]
     ld a, 0
     ld [mBackgroundScroll+1],a
 
+	ld hl, _OAMRAM + 4
+
 ;;;;;;;; END VARIABLES INIT
 
 macro SkipNonKeyFrames ; macro used to allow jump to Main
@@ -126,6 +131,15 @@ Main:
 	call WaitBeforeVBlank
 	call WaitVBlank
 	SkipNonKeyFrames ; only update every few frames
+
+	ld a, [wObjectCounter]
+	cp a, 10
+	jp c, NoResetObjects
+	ld a, 1
+	ld hl, _OAMRAM + 4
+NoResetObjects:
+	inc a
+	ld [wObjectCounter], a
 
 	;;;; handle angle-dependent acceleration and velocity update
 	ld a, [wAccel] ; base acceleration factor
@@ -191,12 +205,22 @@ NoFlipSign:
 NoPivotRight:
 	ld [wAngle], a
 	ld [_OAMRAM + 2], a ; update tile to match updated angle
+	ld [hli], a
+	ld a, %00000000 ; attributes
+	ld [hli], a
 	jp Main
 
 CheckRight:
 	ld a, [wCurKeys]
 	and a, PADF_RIGHT
-	jp z, Main
+	jp z, NoRight
+	jp Right
+NoRight:
+	ld a, $0
+	ld [hli], a
+	ld a, %00000000 ; attributes
+	ld [hli], a
+	jp Main
 Right:
 	ld a, [wAngleNeg] ; I'm once again asking you to check angle sign
 	cp a, 1
@@ -221,6 +245,9 @@ NoFlipSignBack:
 NoPivotLeft:
 	ld [wAngle], a
 	ld [_OAMRAM + 2], a ; update tile to match updated angle
+	ld [hli], a
+	ld a, %00000000 ; attributes
+	ld [hli], a
 	jp Main
 
 
@@ -232,6 +259,7 @@ FlipAngleSignToPositive:
 	
 	ld a, $00 ; mirror tile along X (reset 5th bit)
 	ld [_OAMRAM + 3], a
+	ld [hli], a
 	ld a, c ; restore angle from c
 
 	ret
@@ -244,6 +272,7 @@ FlipAngleSignToNegative:
 	ld c, a ; store angle
 	ld a, $20 ; mirror tile along X (set 5th bit)
 	ld [_OAMRAM + 3], a
+	ld [hli], a
 	ld a, c ; restore angle
 
 	ret ; a = wAngle = wAngleNeg = 1 as that's the only possible absolute value when going from pos to neg
@@ -260,10 +289,11 @@ UpdatePositionY:
 	ld a, [_OAMRAM ]
 	add a, b ; update Y position with velocity value
 	ld [_OAMRAM], a ; write back updated Y position
+	ld [hli], a
 	ret
 	
 .ScrollDown:
-	call ScrollBackgroundY
+	; call ScrollBackgroundY
 	ret
 
 ; @
@@ -281,8 +311,10 @@ UpdatePositionX:
 
 	ld b, 144
 	call ClipByMaximum
-
+	
 	ld [_OAMRAM + 1], a ; write back updated X position
+	ld [hli], a
+
 	ret 
 
 .MoveLeft:
@@ -293,6 +325,7 @@ UpdatePositionX:
 	call ClipByMinimum ; TODO this one is buggy
 
 	ld [_OAMRAM + 1], a ; write back updated X position
+	ld [hli], a
 	ret 
 
 
@@ -375,6 +408,7 @@ Zero:
 
 SECTION "Counter", WRAM0
 wFrameCounter: db ; if changed to ds 0 appears to give scaled refresh
+wObjectCounter: db
 
 SECTION "Input Variables", WRAM0
 wCurKeys: db
