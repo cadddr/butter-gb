@@ -39,7 +39,7 @@ ClearOam:
 	dec b
 	jp nz, ClearOam
 
-    ret
+  ret
 
 UpdateKeys:
     ; Poll half the controller

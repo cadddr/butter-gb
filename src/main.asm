@@ -261,7 +261,7 @@ UpdatePositionY:
 	ld b, a
 
 	ld a, [_OAMRAM ] ; current Y coordinate
-	cp a, TileMiddleY + 77
+	cp a, TileMiddleY
 	jp nc, .ScrollDown
 
 	ld a, [_OAMRAM ]
@@ -272,6 +272,36 @@ UpdatePositionY:
 	
 .ScrollDown:
 	call ScrollBackgroundY
+	ret
+
+
+; @param b: how much to scroll by
+ScrollBackgroundY:
+	ld a, [mBackgroundScroll+0]
+    add a, b
+    ld b, a
+    ld [mBackgroundScroll+0], a
+    ld a, [mBackgroundScroll+1]
+    adc a, 0
+    ld c, a
+    ld [mBackgroundScroll+1], a
+
+	;;; TODO: with scaling on, scroll speed is out of sync with velocity
+	; Descale our scaled integer 
+    ; shift bits to the right 4 spaces
+    ; srl c
+    ; rr b
+    ; srl c
+    ; rr b
+    ; srl c
+    ; rr b
+    ; srl c
+    ; rr b
+
+    ; Use the de-scaled low byte as the backgrounds position
+    ld a, b
+    ld [rSCY], a
+	
 	ret
 
 ; @
@@ -306,38 +336,10 @@ UpdatePositionX:
 	ret 
 
 
-; @param b: how much to scroll by
-ScrollBackgroundY:
-	ld a, [mBackgroundScroll+0]
-    add a, b
-    ld b, a
-    ld [mBackgroundScroll+0], a
-    ld a, [mBackgroundScroll+1]
-    adc a, 0
-    ld c, a
-    ld [mBackgroundScroll+1], a
-
-	;;; TODO: with scaling on, scroll speed is out of sync with velocity
-	; Descale our scaled integer 
-    ; shift bits to the right 4 spaces
-    ; srl c
-    ; rr b
-    ; srl c
-    ; rr b
-    ; srl c
-    ; rr b
-    ; srl c
-    ; rr b
-
-    ; Use the de-scaled low byte as the backgrounds position
-    ld a, b
-    ld [rSCY], a
-	
-	ret
-
 LeaveTrailingMark:
 	call EnforceObjectLimit
-	ld a, [_OAMRAM]
+
+	ld a, [_OAMRAM] ; create object at current coordinate
 	ld [hli], a
 	ld a, [_OAMRAM + 1]
 	ld [hli], a
@@ -346,16 +348,65 @@ LeaveTrailingMark:
 	ld a, [_OAMRAM + 3]
 	or a, $10 ; white palette
 	ld [hli], a 
+	
+	ld a, [rSCY]
+	cp a, 1
+	jp nc, .DoScroll; not less than 1
+
+	ret
+.DoScroll:
+	; ld a, [wVelY]
+	; ld b, a
+	; ld a, [_OAMRAM]
+	; sub a, b
+	ld a, [wVelY]
+	ld d, a
+
+	ld bc, 4 ; length
+
+	dec hl
+	dec hl
+	dec hl
+	dec hl ; go back to current trail's Y
+
+	dec hl
+	dec hl
+	dec hl
+	dec hl ; go back to previous trail's Y
+Loop:
+	ld a, [hl]; get Y value
+	sub a, d
+	ld [hl], a
+
+	dec hl
+	dec hl
+	dec hl
+	dec hl
+
+	dec bc
+	dec bc
+	dec bc
+	dec bc
+
+	ld a, b
+    or a, c
+	jp nz, Loop
+
+
+	ld bc, 8
+	add hl, bc
 
 	ret
 
 
+
+
 EnforceObjectLimit:
 	ld a, [wObjectCounter]
-	cp a, 10
+	cp a, 3
 	jp c, .NoResetObjects
 	ld a, 1
-	ld hl, _OAMRAM + 4
+	ld hl, _OAMRAM + 4 ;???
 .NoResetObjects:
 	inc a
 	ld [wObjectCounter], a
