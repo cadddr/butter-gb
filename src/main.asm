@@ -5,12 +5,13 @@ INCLUDE "hardware.inc/hardware.inc"
 INCLUDE "utils.inc"
 INCLUDE "tiles.inc"
 
-DEF UpdateEveryFrames EQU 5
-DEF ScreenHeight EQU 144 
-DEF TileHeight EQU 8
-DEF TileTopY EQU 2 * TileHeight - TileHeight - TileHeight / 2 
-DEF TileMiddleY EQU ScreenHeight / 2 + 2 * TileHeight - TileHeight - TileHeight / 2 
+DEF UPDATE_EVERY_FRAMES EQU 5
+DEF SCREEN_HEIGHT EQU 144 
+DEF TILE_HEIGHT EQU 8
+DEF TILE_TOP_Y EQU 2 * TILE_HEIGHT - TILE_HEIGHT - TILE_HEIGHT / 2 
+DEF TILE_MIDDLE_Y EQU SCREEN_HEIGHT / 2 + 2 * TILE_HEIGHT - TILE_HEIGHT - TILE_HEIGHT / 2 
 DEF MAX_OBJECTS EQU 5
+DEF MAX_VELOCITY EQU 16
 
 
 SECTION "Header", ROM0[$100]
@@ -126,7 +127,7 @@ macro SkipNonKeyFrames ; macro used to allow jump to Main
 	inc a
 	ld [wFrameCounter], a
 	
-	cp a, UpdateEveryFrames; Every 15 frames (a quarter of a second), run the following code
+	cp a, UPDATE_EVERY_FRAMES; Every 15 frames (a quarter of a second), run the following code
 	jp nz, Main
 
 	; Reset the frame counter back to 0
@@ -150,6 +151,10 @@ Main:
 	ld c, a
 	ld a, b
 	add a, c
+
+	ld b, MAX_VELOCITY
+	call ClipByMaximum
+
 	ld [wVel], a
 
 	;;;;;;;; distribute main speed to Y
@@ -268,7 +273,7 @@ UpdatePositionY:
 	ld b, a
 
 	ld a, [_OAMRAM ] ; current Y coordinate
-	cp a, TileMiddleY
+	cp a, TILE_MIDDLE_Y
 	jp nc, .ScrollDown
 
 	ld a, [_OAMRAM ]
