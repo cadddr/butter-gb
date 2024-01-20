@@ -10,7 +10,7 @@ DEF ScreenHeight EQU 144
 DEF TileHeight EQU 8
 DEF TileTopY EQU 2 * TileHeight - TileHeight - TileHeight / 2 
 DEF TileMiddleY EQU ScreenHeight / 2 + 2 * TileHeight - TileHeight - TileHeight / 2 
-DEF MAX_OBJECTS EQU 2
+DEF MAX_OBJECTS EQU 3
 
 
 SECTION "Header", ROM0[$100]
@@ -111,6 +111,9 @@ SECTION "Header", ROM0[$100]
     ld [mBackgroundScroll+0],a
     ld a, 0
     ld [mBackgroundScroll+1],a
+	
+	ld a, 0
+    ld [mPrevBackgroundScroll],a
 
 	ld hl, _OAMRAM + 4
 
@@ -256,7 +259,8 @@ FlipAngleSignToNegative:
 
 	ret ; a = wAngle = wAngleNeg = 1 as that's the only possible absolute value when going from pos to neg
 
-; @
+
+; @ return amount scrolled in b
 UpdatePositionY:
 	ld a, [wVelY] ; current Y velocity (absolute)
 	ld b, a
@@ -340,8 +344,15 @@ UpdatePositionX:
 LeaveTrailingMark:
 	; call EnforceObjectLimit
 
+	ld a, [wVelY]
+	or a, a
+	jp nz, .Continue
+	ret 
+
+.Continue:
+
 	ld a, [wObjectCounter]
-	cp a, MAX_OBJECTS ; has to be one more than two total objects for carry to occur
+	cp a, MAX_OBJECTS; current total objects has to be less than max for carry to occur
 	jp nc, .DoScroll
 	inc a
 	ld [wObjectCounter], a
@@ -356,22 +367,26 @@ LeaveTrailingMark:
 	or a, $10 ; white palette
 	ld [hli], a 
 	
-	ld a, [rSCY]
-	cp a, 1
-	jp nc, .DoScroll; not less than 1
+	; ld a, [rSCY]
+	; cp a, 1
+	; jp nc, .DoScroll; not less than 1
 
-	ret
+	; ret
 .DoScroll: ; if motion is done via scrolling, move all previous trails by velocity amount
 	ld a, [wVelY]
 	ld b, a
 	ld a, [_OAMRAM + 4]
 	sub a, b
 	ld [_OAMRAM + 4], a
+
+	ld a, [_OAMRAM + 8]
+	sub a, b
+	ld [_OAMRAM + 8], a
 	ret
 	; ld a, [wVelY]
 	; ld d, a
 
-	; ld bc, 4 ; length
+	ld bc, 4 * MAX_OBJECTS - 1 ; length
 
 	; dec hl
 	; dec hl
@@ -392,14 +407,14 @@ LeaveTrailingMark:
 ; 	dec hl
 ; 	dec hl
 
-; 	dec bc
-; 	dec bc
-; 	dec bc
-; 	dec bc
+	; dec bc
+	; dec bc
+	; dec bc
+	; dec bc
 
-; 	ld a, b
-;     or a, c
-; 	jp nz, Loop
+	; ld a, b
+    ; or a, c
+	; jp nz, Loop
 
 
 	; ld bc, 8
@@ -415,7 +430,7 @@ EnforceObjectLimit:
 	cp a, MAX_OBJECTS ; has to be one more than two total objects for carry to occur
 	jp c, .NoResetObjects ; not less than
 	ld a, 1
-	ld hl, _OAMRAM + 4 ;???
+	ld hl, _OAMRAM + 4 ; the fact that it resets pointer to first object makes it hard to tell old vs new
 .NoResetObjects:
 	inc a
 	ld [wObjectCounter], a
@@ -490,3 +505,4 @@ wAngle: db
 wAngleNeg: db
 
 mBackgroundScroll:: dw
+mPrevBackgroundScroll: db
