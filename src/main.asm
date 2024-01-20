@@ -10,6 +10,7 @@ DEF ScreenHeight EQU 144
 DEF TileHeight EQU 8
 DEF TileTopY EQU 2 * TileHeight - TileHeight - TileHeight / 2 
 DEF TileMiddleY EQU ScreenHeight / 2 + 2 * TileHeight - TileHeight - TileHeight / 2 
+DEF MAX_OBJECTS EQU 2
 
 
 SECTION "Header", ROM0[$100]
@@ -61,7 +62,7 @@ SECTION "Header", ROM0[$100]
 
 	; Draw player object
 	ld hl, _OAMRAM
-	ld a, 4 + 16 ; Y
+	ld a, TileMiddleY + 16 ; Y
 	ld [hli], a
 	ld a, 80 + 8 - 4 ; X
 	ld [hli], a
@@ -337,7 +338,13 @@ UpdatePositionX:
 
 
 LeaveTrailingMark:
-	call EnforceObjectLimit
+	; call EnforceObjectLimit
+
+	ld a, [wObjectCounter]
+	cp a, MAX_OBJECTS ; has to be one more than two total objects for carry to occur
+	jp nc, .DoScroll
+	inc a
+	ld [wObjectCounter], a
 
 	ld a, [_OAMRAM] ; create object at current coordinate
 	ld [hli], a
@@ -354,47 +361,49 @@ LeaveTrailingMark:
 	jp nc, .DoScroll; not less than 1
 
 	ret
-.DoScroll:
-	; ld a, [wVelY]
-	; ld b, a
-	; ld a, [_OAMRAM]
-	; sub a, b
+.DoScroll: ; if motion is done via scrolling, move all previous trails by velocity amount
 	ld a, [wVelY]
-	ld d, a
+	ld b, a
+	ld a, [_OAMRAM + 4]
+	sub a, b
+	ld [_OAMRAM + 4], a
+	ret
+	; ld a, [wVelY]
+	; ld d, a
 
-	ld bc, 4 ; length
+	; ld bc, 4 ; length
 
-	dec hl
-	dec hl
-	dec hl
-	dec hl ; go back to current trail's Y
+	; dec hl
+	; dec hl
+	; dec hl
+	; dec hl ; go back to current trail's Y
 
-	dec hl
-	dec hl
-	dec hl
-	dec hl ; go back to previous trail's Y
-Loop:
-	ld a, [hl]; get Y value
-	sub a, d
-	ld [hl], a
+	; dec hl
+	; dec hl
+	; dec hl
+	; dec hl ; go back to previous trail's Y
+; Loop:
+; 	ld a, [hl]; get Y value
+; 	sub a, d
+; 	ld [hl], a
 
-	dec hl
-	dec hl
-	dec hl
-	dec hl
+; 	dec hl
+; 	dec hl
+; 	dec hl
+; 	dec hl
 
-	dec bc
-	dec bc
-	dec bc
-	dec bc
+; 	dec bc
+; 	dec bc
+; 	dec bc
+; 	dec bc
 
-	ld a, b
-    or a, c
-	jp nz, Loop
+; 	ld a, b
+;     or a, c
+; 	jp nz, Loop
 
 
-	ld bc, 8
-	add hl, bc
+	; ld bc, 8
+	; add hl, bc
 
 	ret
 
@@ -403,8 +412,8 @@ Loop:
 
 EnforceObjectLimit:
 	ld a, [wObjectCounter]
-	cp a, 3
-	jp c, .NoResetObjects
+	cp a, MAX_OBJECTS ; has to be one more than two total objects for carry to occur
+	jp c, .NoResetObjects ; not less than
 	ld a, 1
 	ld hl, _OAMRAM + 4 ;???
 .NoResetObjects:
