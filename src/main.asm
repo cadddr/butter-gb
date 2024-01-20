@@ -357,6 +357,7 @@ LeaveTrailingMark:
 	ld a, [_OAMRAM + 1]
 	ld [hli], a
 	ld a, [_OAMRAM + 2]
+	add a, 3 ; offset to trails tiles
 	ld [hli], a
 	ld a, [_OAMRAM + 3]
 	or a, $10 ; white palette
@@ -367,7 +368,7 @@ LeaveTrailingMark:
 	jp nc, .ScrollTrailsUp; not less than 1
 
 	ret
-	
+
 .ScrollTrailsUp: ; if motion is done via scrolling, move all previous trails by velocity amount
 	ld a, [wVelY]
 	ld d, a
