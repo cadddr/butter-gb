@@ -10,7 +10,7 @@ DEF ScreenHeight EQU 144
 DEF TileHeight EQU 8
 DEF TileTopY EQU 2 * TileHeight - TileHeight - TileHeight / 2 
 DEF TileMiddleY EQU ScreenHeight / 2 + 2 * TileHeight - TileHeight - TileHeight / 2 
-DEF MAX_OBJECTS EQU 3
+DEF MAX_OBJECTS EQU 20
 
 
 SECTION "Header", ROM0[$100]
@@ -111,9 +111,11 @@ SECTION "Header", ROM0[$100]
     ld [mBackgroundScroll+0],a
     ld a, 0
     ld [mBackgroundScroll+1],a
-	
+
 	ld a, 0
-    ld [mPrevBackgroundScroll],a
+    ld [wTemp+0],a
+    ld a, 0
+    ld [wTemp+1],a
 
 	ld hl, _OAMRAM + 4
 
@@ -374,19 +376,7 @@ LeaveTrailingMark:
 	; ret
 .DoScroll: ; if motion is done via scrolling, move all previous trails by velocity amount
 	ld a, [wVelY]
-	ld b, a
-	ld a, [_OAMRAM + 4]
-	sub a, b
-	ld [_OAMRAM + 4], a
-
-	ld a, [_OAMRAM + 8]
-	sub a, b
-	ld [_OAMRAM + 8], a
-	ret
-	; ld a, [wVelY]
-	; ld d, a
-
-	ld bc, 4 * MAX_OBJECTS - 1 ; length
+	ld d, a
 
 	; dec hl
 	; dec hl
@@ -397,24 +387,37 @@ LeaveTrailingMark:
 	; dec hl
 	; dec hl
 	; dec hl ; go back to previous trail's Y
-; Loop:
-; 	ld a, [hl]; get Y value
-; 	sub a, d
-; 	ld [hl], a
 
-; 	dec hl
-; 	dec hl
-; 	dec hl
-; 	dec hl
+	ld a, h
+	ld [wTemp], a
+	ld a, l
+	ld [wTemp + 1], a
 
-	; dec bc
-	; dec bc
-	; dec bc
-	; dec bc
+	ld hl, _OAMRAM + 4
+	ld bc, 4 * (MAX_OBJECTS - 1) ; length
+.Loop:
+	ld a, [hl]; get Y value
+	sub a, d
+	ld [hl], a
 
-	; ld a, b
-    ; or a, c
-	; jp nz, Loop
+	inc hl
+	inc hl
+	inc hl
+	inc hl
+
+	dec bc
+	dec bc
+	dec bc
+	dec bc
+
+	ld a, b
+    or a, c
+	jp nz, .Loop
+
+	ld a, [wTemp]
+	ld h, a
+	ld a, [wTemp + 1]
+	ld l, a
 
 
 	; ld bc, 8
@@ -505,4 +508,4 @@ wAngle: db
 wAngleNeg: db
 
 mBackgroundScroll:: dw
-mPrevBackgroundScroll: db
+wTemp: dw
