@@ -10,7 +10,7 @@ DEF ScreenHeight EQU 144
 DEF TileHeight EQU 8
 DEF TileTopY EQU 2 * TileHeight - TileHeight - TileHeight / 2 
 DEF TileMiddleY EQU ScreenHeight / 2 + 2 * TileHeight - TileHeight - TileHeight / 2 
-DEF MAX_OBJECTS EQU 20
+DEF MAX_OBJECTS EQU 5
 
 
 SECTION "Header", ROM0[$100]
@@ -62,7 +62,7 @@ SECTION "Header", ROM0[$100]
 
 	; Draw player object
 	ld hl, _OAMRAM
-	ld a, TileMiddleY + 16 ; Y
+	ld a, 0 + 16 ; Y
 	ld [hli], a
 	ld a, 80 + 8 - 4 ; X
 	ld [hli], a
@@ -344,22 +344,15 @@ UpdatePositionX:
 
 
 LeaveTrailingMark:
-	; call EnforceObjectLimit
-
 	ld a, [wVelY]
 	or a, a
-	jp nz, .Continue
+	jp nz, .Continue ; only leave traces when moving
 	ret 
 
 .Continue:
+	call EnforceObjectLimit
 
-	ld a, [wObjectCounter]
-	cp a, MAX_OBJECTS; current total objects has to be less than max for carry to occur
-	jp nc, .DoScroll
-	inc a
-	ld [wObjectCounter], a
-
-	ld a, [_OAMRAM] ; create object at current coordinate
+	ld a, [_OAMRAM] ; create trail object at current coordinate
 	ld [hli], a
 	ld a, [_OAMRAM + 1]
 	ld [hli], a
@@ -369,26 +362,17 @@ LeaveTrailingMark:
 	or a, $10 ; white palette
 	ld [hli], a 
 	
-	; ld a, [rSCY]
-	; cp a, 1
-	; jp nc, .DoScroll; not less than 1
+	ld a, [rSCY]
+	cp a, 1
+	jp nc, .ScrollTrailsUp; not less than 1
 
-	; ret
-.DoScroll: ; if motion is done via scrolling, move all previous trails by velocity amount
+	ret
+	
+.ScrollTrailsUp: ; if motion is done via scrolling, move all previous trails by velocity amount
 	ld a, [wVelY]
 	ld d, a
 
-	; dec hl
-	; dec hl
-	; dec hl
-	; dec hl ; go back to current trail's Y
-
-	; dec hl
-	; dec hl
-	; dec hl
-	; dec hl ; go back to previous trail's Y
-
-	ld a, h
+	ld a, h ; store hl in memory
 	ld [wTemp], a
 	ld a, l
 	ld [wTemp + 1], a
@@ -414,19 +398,12 @@ LeaveTrailingMark:
     or a, c
 	jp nz, .Loop
 
-	ld a, [wTemp]
+	ld a, [wTemp] ; restore hl from memory
 	ld h, a
 	ld a, [wTemp + 1]
 	ld l, a
 
-
-	; ld bc, 8
-	; add hl, bc
-
 	ret
-
-
-
 
 EnforceObjectLimit:
 	ld a, [wObjectCounter]
