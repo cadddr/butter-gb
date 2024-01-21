@@ -10,7 +10,7 @@ DEF SCREEN_HEIGHT EQU 144
 DEF TILE_HEIGHT EQU 8
 DEF TILE_TOP_Y EQU 2 * TILE_HEIGHT - TILE_HEIGHT - TILE_HEIGHT / 2 
 DEF TILE_MIDDLE_Y EQU SCREEN_HEIGHT / 2 + 2 * TILE_HEIGHT - TILE_HEIGHT - TILE_HEIGHT / 2 
-DEF MAX_OBJECTS EQU 5
+DEF MAX_OBJECTS EQU 10
 DEF MAX_VELOCITY EQU 8
 
 
@@ -63,37 +63,54 @@ SECTION "Header", ROM0[$100]
 
 	; Draw player object
 	ld hl, _OAMRAM
-	ld a, 0 + 16 ; Y
-	ld [hli], a
-	ld a, 80 + 8 - 4 ; X
-	ld [hli], a
-	ld a, $0 ; tile ID
-	ld [hli], a
-	ld a, %00000000 ; attributes
-	ld [hl], a
+	ld a, 0
+	ld b, 80 - 4
+	ld c, $0 
+	call SpawnObjectWithDefaultAttributes
 
 	; Draw gondola object
 	ld hl, _OAMRAM + MAX_OBJECTS * 4
-	ld a, 32
-	ld b, 32
+	ld a, 88
+	ld b, 160
 	ld c, $6
-	ld d, %00000000 ; attributes
-	call SpawnObject
+	call SpawnObjectWithDefaultAttributes
 	
-	ld a, 32 + 8
-	ld b, 32
+	ld a, 88 + 8
+	ld b, 160
 	ld c, $7
-	call SpawnObject
+	call SpawnObjectWithDefaultAttributes
 	
-	ld a, 32
-	ld b, 32 + 8
+	ld a, 88
+	ld b, 160 + 8
 	ld c, $8
-	call SpawnObject
+	call SpawnObjectWithDefaultAttributes
 
-	ld a, 32 + 8
-	ld b, 32 + 8
+	ld a, 88 + 8
+	ld b, 160 + 8
 	ld c, $9
-	call SpawnObject
+	call SpawnObjectWithDefaultAttributes
+
+	; Draw gondola object
+	ld hl, _OAMRAM + MAX_OBJECTS * 4 + 16
+	ld a, 0
+	ld b, 0
+	ld c, $6
+	call SpawnObjectWithDefaultAttributes
+	
+	ld a, 0 + 8
+	ld b, 0
+	ld c, $7
+	call SpawnObjectWithDefaultAttributes
+	
+	ld a, 0
+	ld b, 0 + 8
+	ld c, $8
+	call SpawnObjectWithDefaultAttributes
+
+	ld a, 0 + 8
+	ld b, 0 + 8
+	ld c, $9
+	call SpawnObjectWithDefaultAttributes
 
 	; Turn the LCD on
 	ld a, LCDCF_ON | LCDCF_BGON | LCDCF_OBJON ;| LCDCF_OBJ16
@@ -164,6 +181,7 @@ Main:
 	SkipNonKeyFrames ; only update every few frames
 	call LeaveTrailingMark
 
+
 	;;;; handle angle-dependent acceleration and velocity update
 	ld a, [wAccel] ; base acceleration factor
 	ld c, a
@@ -201,6 +219,8 @@ Main:
 	;;;;
 	call UpdatePositionY
 	call UpdatePositionX
+	call UpdateGondolaPosition
+	call UpdateGondolaPosition2
 	; arrow buttons control snowboard angle to the slope which in turn affects acceleration and direction
 	call UpdateKeys
 
@@ -370,6 +390,127 @@ UpdatePositionX:
 
 	ret 
 
+UpdateGondolaPosition:
+	ld a, h ; store hl in memory
+	ld [wTemp], a
+	ld a, l
+	ld [wTemp + 1], a
+
+	ld hl, _OAMRAM + MAX_OBJECTS * 4
+
+	; 0
+	ld a, [hl]
+	dec a
+	ld [hli], a
+
+	ld a, [hl]
+	dec a
+	ld [hli], a
+
+	inc hl
+	inc hl
+
+	; 1
+	ld a, [hl]
+	dec a
+	ld [hli], a
+
+	ld a, [hl]
+	dec a
+	ld [hli], a
+
+	inc hl
+	inc hl
+
+	; 2
+	ld a, [hl]
+	dec a
+	ld [hli], a
+
+	ld a, [hl]
+	dec a
+	ld [hli], a
+
+	inc hl
+	inc hl
+
+	; 3
+	ld a, [hl]
+	dec a
+	ld [hli], a
+
+	ld a, [hl]
+	dec a
+	ld [hl], a
+
+
+	ld a, [wTemp] ; restore hl from memory
+	ld h, a
+	ld a, [wTemp + 1]
+	ld l, a
+
+	ret
+
+UpdateGondolaPosition2:
+	ld a, h ; store hl in memory
+	ld [wTemp], a
+	ld a, l
+	ld [wTemp + 1], a
+
+	ld hl, _OAMRAM + MAX_OBJECTS * 4 + 16
+
+	; 0
+	ld a, [hl]
+	inc a
+	ld [hli], a
+
+	ld a, [hl]
+	inc a
+	ld [hli], a
+
+	inc hl
+	inc hl
+
+	; 1
+	ld a, [hl]
+	inc a
+	ld [hli], a
+
+	ld a, [hl]
+	inc a
+	ld [hli], a
+
+	inc hl
+	inc hl
+
+	; 2
+	ld a, [hl]
+	inc a
+	ld [hli], a
+
+	ld a, [hl]
+	inc a
+	ld [hli], a
+
+	inc hl
+	inc hl
+
+	; 3
+	ld a, [hl]
+	inc a
+	ld [hli], a
+
+	ld a, [hl]
+	inc a
+	ld [hl], a
+
+
+	ld a, [wTemp] ; restore hl from memory
+	ld h, a
+	ld a, [wTemp + 1]
+	ld l, a
+
+	ret
 
 ; @param hl: starting destination address
 ; @param a: screen Y
@@ -389,6 +530,11 @@ SpawnObject:
 
 	ld a, d ; attributes
 	ld [hli], a
+	ret
+
+SpawnObjectWithDefaultAttributes:
+	ld d, %00000000
+	call SpawnObject
 	ret
 
 
