@@ -72,6 +72,29 @@ SECTION "Header", ROM0[$100]
 	ld a, %00000000 ; attributes
 	ld [hl], a
 
+	; Draw gondola object
+	ld hl, _OAMRAM + MAX_OBJECTS * 4
+	ld a, 32
+	ld b, 32
+	ld c, $6
+	ld d, %00000000 ; attributes
+	call SpawnObject
+	
+	ld a, 32 + 8
+	ld b, 32
+	ld c, $7
+	call SpawnObject
+	
+	ld a, 32
+	ld b, 32 + 8
+	ld c, $8
+	call SpawnObject
+
+	ld a, 32 + 8
+	ld b, 32 + 8
+	ld c, $9
+	call SpawnObject
+
 	; Turn the LCD on
 	ld a, LCDCF_ON | LCDCF_BGON | LCDCF_OBJON ;| LCDCF_OBJ16
 	ld [rLCDC], a
@@ -346,6 +369,27 @@ UpdatePositionX:
 	ld [_OAMRAM + 1], a ; write back updated X position
 
 	ret 
+
+
+; @param hl: starting destination address
+; @param a: screen Y
+; @param b: screen X
+; @param c: tile ID
+; @param d: attributes
+SpawnObject:
+	add a, 16 ; Y
+	ld [hli], a
+
+	ld a, b
+	add a, 8 ; X
+	ld [hli], a
+
+	ld a, c ;tile ID
+	ld [hli], a
+
+	ld a, d ; attributes
+	ld [hli], a
+	ret
 
 
 LeaveTrailingMark:
