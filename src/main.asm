@@ -13,12 +13,26 @@ DEF TILE_MIDDLE_Y EQU SCREEN_HEIGHT / 2 + 2 * TILE_HEIGHT - TILE_HEIGHT - TILE_H
 DEF MAX_OBJECTS EQU 10
 DEF MAX_VELOCITY EQU 8
 
+SECTION	"HBlank Handler",ROM0[$48]
+HBlankHandler::	; 40 cycles
+	push	af		; 4
+	push	hl		; 4
+
+	; ld a, 50
+	; ld [rSCX], a
+	call LYC
+
+	pop	hl		; 3
+	pop	af		; 3
+	reti			; 4
+
 
 SECTION "Header", ROM0[$100]
 
 	; This is your ROM's entry point
 	; You have 4 bytes of code to do... something
 	di
+	; ei
 	jp EntryPoint
 
 	; Make sure to allocate some space for the header, so no important
@@ -123,6 +137,16 @@ SECTION "Header", ROM0[$100]
 	ld a, %00000000 ; palette
 	ld [rOBP1], a
 
+
+	ld	a,STATF_MODE00
+	ldh	[rSTAT],a
+	; enable the interrupts
+	ld	a,IEF_LCDC
+	ldh	[rIE],a
+	xor	a
+	ei
+	ldh	[rIF],a
+
 ;;;;;;;; VARIABLES INIT
 	ld a, 0
 	ld [wFrameCounter], a
@@ -162,6 +186,8 @@ SECTION "Header", ROM0[$100]
 
 ;;;;;;;; END VARIABLES INIT
 
+
+
 macro SkipNonKeyFrames ; macro used to allow jump to Main
 	ld a, [wFrameCounter]
 	inc a
@@ -174,6 +200,7 @@ macro SkipNonKeyFrames ; macro used to allow jump to Main
 	ld a, 0
 	ld [wFrameCounter], a
 endm
+
 
 Main:
 	call WaitBeforeVBlank
@@ -659,6 +686,35 @@ SkipDivide:
 Zero:
 	ld b, 0 ; resets b
 	ret	; returns a = wAngle = 0
+
+LYC::
+    push af
+    ldh a, [rLY]
+    ; cp 64 - 1
+    ; jr z, .disableSprites
+
+    ; enable sprites
+    ; ldh a, [rLCDC]
+    ; or a, LCDCF_OBJON
+    ; ldh [rLCDC], a
+	; ld a, 0
+	ld b, a
+	ld a, [rSCX]
+	add a, b
+	ld [rSCX], a
+    pop af
+    reti
+
+; .disableSprites
+;     ; ldh a, [rLCDC]
+;     ; and a, ~LCDCF_OBJON
+;     ; ldh [rLCDC], a
+
+; 	; ld a, 50
+; 	ld [rSCX], a
+	
+;     pop af
+;     reti
 
 
 SECTION "Counter", WRAM0
