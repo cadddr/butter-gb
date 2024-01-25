@@ -18,13 +18,11 @@ HBlankHandler::	; 40 cycles
 	push	af		; 4
 	push	hl		; 4
 
-	; ld a, 50
-	; ld [rSCX], a
 	call LYC
 
 	pop	hl		; 3
 	pop	af		; 3
-	reti			; 4
+	reti		; 4
 
 
 SECTION "Header", ROM0[$100]
@@ -353,7 +351,7 @@ UpdatePositionY:
 	ret
 	
 .ScrollDown:
-	call ScrollBackgroundY
+	; call ScrollBackgroundY
 	ret
 
 
@@ -690,31 +688,42 @@ Zero:
 LYC::
     push af
     ldh a, [rLY]
-    ; cp 64 - 1
-    ; jr z, .disableSprites
+    cp 64 - 1
+    jr nc, .disableSprites
 
     ; enable sprites
-    ; ldh a, [rLCDC]
-    ; or a, LCDCF_OBJON
-    ; ldh [rLCDC], a
+    ldh a, [rLCDC]
+    or a, LCDCF_OBJON
+    ldh [rLCDC], a
+
 	; ld a, 0
-	ld b, a
-	ld a, [rSCX]
-	add a, b
-	ld [rSCX], a
+	; ld [rSCX], a
+
+	ld a, 0
+	; ld b, a
+	; ld a, [rSCY]
+	; add a, b
+	ld [rSCY], a
+
     pop af
     reti
 
-; .disableSprites
-;     ; ldh a, [rLCDC]
-;     ; and a, ~LCDCF_OBJON
-;     ; ldh [rLCDC], a
+.disableSprites
+    ldh a, [rLCDC]
+    and a, ~LCDCF_OBJON
+    ldh [rLCDC], a
 
-; 	; ld a, 50
-; 	ld [rSCX], a
+	; ld a, 144
+	; ld [rSCX], a
+
+	ld a, 50
+	; ld b, a
+	; ld a, [rSCY]
+	; add a, b
+	ld [rSCY], a
 	
-;     pop af
-;     reti
+    pop af
+    reti
 
 
 SECTION "Counter", WRAM0
