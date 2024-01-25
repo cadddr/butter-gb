@@ -12,6 +12,8 @@ DEF TILE_TOP_Y EQU 2 * TILE_HEIGHT - TILE_HEIGHT - TILE_HEIGHT / 2
 DEF TILE_MIDDLE_Y EQU SCREEN_HEIGHT / 2 + 2 * TILE_HEIGHT - TILE_HEIGHT - TILE_HEIGHT / 2 
 DEF MAX_OBJECTS EQU 10
 DEF MAX_VELOCITY EQU 8
+DEF SCROLL_SPEED_BG EQU 0
+DEF SCROLL_SPEED_FG EQU 2
 
 SECTION	"HBlank Handler",ROM0[$48]
 HBlankHandler::	; 40 cycles
@@ -180,6 +182,12 @@ SECTION "Header", ROM0[$100]
     ld a, 0
     ld [wTemp+1],a
 
+	ld a, 0
+    ld [wBgScrollSlow], a
+
+	ld a, 0
+    ld [wBgScrollFast], a
+
 	ld hl, _OAMRAM + 4
 
 ;;;;;;;; END VARIABLES INIT
@@ -244,8 +252,11 @@ Main:
 	;;;;
 	call UpdatePositionY
 	call UpdatePositionX
-	call UpdateGondolaPosition
-	call UpdateGondolaPosition2
+	; call UpdateGondolaPosition
+	; call UpdateGondolaPosition2
+
+	call SetParallaxScroll
+
 	; arrow buttons control snowboard angle to the slope which in turn affects acceleration and direction
 	call UpdateKeys
 
@@ -383,6 +394,21 @@ ScrollBackgroundY:
     ld [rSCY], a
 	
 	ret
+
+; @ TODO: should be velocity dependent
+SetParallaxScroll:
+	;;;;;;;;;;;;;;
+	ld a, SCROLL_SPEED_BG
+	ld b, a
+	ld a, [wBgScrollSlow]
+	add a, b
+	ld [wBgScrollSlow], a
+
+	ld a, SCROLL_SPEED_FG
+	ld b, a
+	ld a, [wBgScrollFast]
+	add a, b
+	ld [wBgScrollFast], a
 
 ; @
 UpdatePositionX:
@@ -685,41 +711,28 @@ Zero:
 	ld b, 0 ; resets b
 	ret	; returns a = wAngle = 0
 
+; scroll background before line 64 at slow speed and after at fast speed
 LYC::
     push af
     ldh a, [rLY]
     cp 64 - 1
-    jr nc, .disableSprites
-
-    ; enable sprites
-    ldh a, [rLCDC]
-    or a, LCDCF_OBJON
-    ldh [rLCDC], a
-
-	; ld a, 0
-	; ld [rSCX], a
+    jr nc, .scrollForeground
 
 	ld a, 0
-	; ld b, a
-	; ld a, [rSCY]
-	; add a, b
+	ld [rSCX], a
+
+	ld a, [wBgScrollSlow]
 	ld [rSCY], a
 
     pop af
     reti
 
-.disableSprites
-    ldh a, [rLCDC]
-    and a, ~LCDCF_OBJON
-    ldh [rLCDC], a
+.scrollForeground
 
-	; ld a, 144
-	; ld [rSCX], a
+	add a, 128 / 2
+	ld [rSCX], a
 
-	ld a, 50
-	; ld b, a
-	; ld a, [rSCY]
-	; add a, b
+	ld a, [wBgScrollFast]
 	ld [rSCY], a
 	
     pop af
@@ -747,3 +760,6 @@ wAngleNeg: db
 
 mBackgroundScroll:: dw
 wTemp: dw
+
+wBgScrollSlow: db
+wBgScrollFast: db
