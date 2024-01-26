@@ -14,7 +14,7 @@ DEF MAX_OBJECTS EQU 10
 DEF MAX_VELOCITY EQU 8
 DEF SCROLL_SPEED_BG EQU 0
 DEF SCROLL_SPEED_FG EQU 2
-DEF FOREGROUND_START_Y EQU 96
+DEF FOREGROUND_START_Y EQU 128
 
 SECTION	"HBlank Handler",ROM0[$48]
 HBlankHandler::	; 40 cycles
@@ -128,32 +128,32 @@ SECTION "Header", ROM0[$100]
 	call SpawnObjectWithDefaultAttributes
 
 	; Draw trees
-	ld a, 96 - 8 ;1
+	ld a, FOREGROUND_START_Y - 8 ;1
 	ld b, 32 - 4
 	ld c, $A
 	call SpawnObjectWithDefaultAttributes
 
-	ld a, 96
+	ld a, FOREGROUND_START_Y
 	ld b, 32 - 4
 	ld c, $B
 	call SpawnObjectWithDefaultAttributes
 
-	ld a, 96 - 8 ;2
+	ld a, FOREGROUND_START_Y - 8 ;2
 	ld b, 32 + 4
 	ld c, $C
 	call SpawnObjectWithDefaultAttributes
 
-	ld a, 96
+	ld a, FOREGROUND_START_Y
 	ld b, 32 + 4
 	ld c, $D
 	call SpawnObjectWithDefaultAttributes
 
-	ld a, 96 - 8 ;3
+	ld a, FOREGROUND_START_Y - 8 ;3
 	ld b, 32 + 12
 	ld c, $E
 	call SpawnObjectWithDefaultAttributes
 
-	ld a, 96
+	ld a, FOREGROUND_START_Y
 	ld b, 32 + 12
 	ld c, $F
 	call SpawnObjectWithDefaultAttributes
