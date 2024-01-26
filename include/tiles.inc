@@ -5,6 +5,7 @@ Player:
 	; dw `21133310, `21333331, `01333330, `03330333, `03300033, `03330033, `20333332, `02222220
     INCBIN "player.gb",0,96
 	INCBIN "gondola.gb",0,64
+	INCBIN "trees.gb",0,96
 PlayerEnd:
 
 Tiles:

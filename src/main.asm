@@ -12,7 +12,7 @@ DEF TILE_TOP_Y EQU 2 * TILE_HEIGHT - TILE_HEIGHT - TILE_HEIGHT / 2
 DEF TILE_MIDDLE_Y EQU SCREEN_HEIGHT / 2 + 2 * TILE_HEIGHT - TILE_HEIGHT - TILE_HEIGHT / 2 
 DEF MAX_OBJECTS EQU 10
 DEF MAX_VELOCITY EQU 8
-DEF SCROLL_SPEED_BG EQU 1
+DEF SCROLL_SPEED_BG EQU 0
 DEF SCROLL_SPEED_FG EQU 2
 DEF FOREGROUND_START_Y EQU 96
 
@@ -125,6 +125,37 @@ SECTION "Header", ROM0[$100]
 	ld a, 0 + 8
 	ld b, 0 + 8
 	ld c, $9
+	call SpawnObjectWithDefaultAttributes
+
+	; Draw trees
+	ld a, 96 - 8 ;1
+	ld b, 32 - 4
+	ld c, $A
+	call SpawnObjectWithDefaultAttributes
+
+	ld a, 96
+	ld b, 32 - 4
+	ld c, $B
+	call SpawnObjectWithDefaultAttributes
+
+	ld a, 96 - 8 ;2
+	ld b, 32 + 4
+	ld c, $C
+	call SpawnObjectWithDefaultAttributes
+
+	ld a, 96
+	ld b, 32 + 4
+	ld c, $D
+	call SpawnObjectWithDefaultAttributes
+
+	ld a, 96 - 8 ;3
+	ld b, 32 + 12
+	ld c, $E
+	call SpawnObjectWithDefaultAttributes
+
+	ld a, 96
+	ld b, 32 + 12
+	ld c, $F
 	call SpawnObjectWithDefaultAttributes
 
 	; Turn the LCD on
