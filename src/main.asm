@@ -12,9 +12,9 @@ DEF TILE_TOP_Y EQU 2 * TILE_HEIGHT - TILE_HEIGHT - TILE_HEIGHT / 2
 DEF TILE_MIDDLE_Y EQU SCREEN_HEIGHT / 2 + 2 * TILE_HEIGHT - TILE_HEIGHT - TILE_HEIGHT / 2 
 DEF MAX_OBJECTS EQU 10
 DEF MAX_VELOCITY EQU 8
-DEF SCROLL_SPEED_BG EQU 0
+DEF SCROLL_SPEED_BG EQU 1
 DEF SCROLL_SPEED_FG EQU 2
-DEF FOREGROUND_START_Y EQU 128
+DEF FOREGROUND_START_Y EQU 128 + 8
 
 SECTION	"HBlank Handler",ROM0[$48]
 HBlankHandler::	; 40 cycles
@@ -127,7 +127,7 @@ SECTION "Header", ROM0[$100]
 	ld c, $9
 	call SpawnObjectWithDefaultAttributes
 
-	; Draw trees
+	; Draw trees left
 	ld a, FOREGROUND_START_Y - 8 ;1
 	ld b, 32 - 4
 	ld c, $A
@@ -157,6 +157,43 @@ SECTION "Header", ROM0[$100]
 	ld b, 32 + 12
 	ld c, $F
 	call SpawnObjectWithDefaultAttributes
+
+	; Draw trees right
+	ld a, FOREGROUND_START_Y - 8 ;1
+	ld b, 160 - (32 - 4)
+	ld c, $A
+	ld d, $20
+	call SpawnObject
+
+	ld a, FOREGROUND_START_Y
+	ld b, 160 - (32 - 4)
+	ld c, $B
+	ld d, $20
+	call SpawnObject
+
+	ld a, FOREGROUND_START_Y - 8 ;2
+	ld b, 160 - (32 + 4)
+	ld c, $C
+	ld d, $20
+	call SpawnObject
+
+	ld a, FOREGROUND_START_Y
+	ld b, 160 - (32 + 4)
+	ld c, $D
+	ld d, $20
+	call SpawnObject
+
+	ld a, FOREGROUND_START_Y - 8 ;3
+	ld b, 160 - (32 + 12)
+	ld c, $E
+	ld d, $20
+	call SpawnObject
+
+	ld a, FOREGROUND_START_Y
+	ld b, 160 - (32 + 12)
+	ld c, $F
+	ld d, $20
+	call SpawnObject
 
 	; Turn the LCD on
 	ld a, LCDCF_ON | LCDCF_BGON | LCDCF_OBJON ;| LCDCF_OBJ16
