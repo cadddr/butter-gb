@@ -14,6 +14,7 @@ DEF MAX_OBJECTS EQU 10
 DEF MAX_VELOCITY EQU 8
 DEF SCROLL_SPEED_BG EQU 0
 DEF SCROLL_SPEED_FG EQU 2
+DEF FOREGROUND_START_Y EQU 96
 
 SECTION	"HBlank Handler",ROM0[$48]
 HBlankHandler::	; 40 cycles
@@ -187,6 +188,9 @@ SECTION "Header", ROM0[$100]
 
 	ld a, 0
     ld [wBgScrollFast], a
+
+	ld a, 0
+    ld [wBgScrollFastX], a
 
 	ld hl, _OAMRAM + 4
 
@@ -404,11 +408,18 @@ SetParallaxScroll:
 	add a, b
 	ld [wBgScrollSlow], a
 
-	ld a, SCROLL_SPEED_FG
+	ld a, [wVelY]
+	; ld a, SCROLL_SPEED_FG
 	ld b, a
 	ld a, [wBgScrollFast]
 	add a, b
 	ld [wBgScrollFast], a
+
+	ld a, [wVelY]
+	ld b, a
+	ld a, [wBgScrollFastX]
+	add a, b
+	ld [wBgScrollFastX], a
 
 ; @
 UpdatePositionX:
@@ -715,7 +726,7 @@ Zero:
 LYC::
     push af
     ldh a, [rLY]
-    cp 64 - 1
+    cp FOREGROUND_START_Y - 1
     jr nc, .scrollForeground
 
 	ld a, 0
@@ -728,8 +739,10 @@ LYC::
     reti
 
 .scrollForeground
-
-	add a, 128 / 2
+	; ld b, a
+	; ld a, [wBgScrollFastX]
+	ld a, 128
+	; add a, b
 	ld [rSCX], a
 
 	ld a, [wBgScrollFast]
@@ -763,3 +776,4 @@ wTemp: dw
 
 wBgScrollSlow: db
 wBgScrollFast: db
+wBgScrollFastX: db
