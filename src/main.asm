@@ -12,7 +12,7 @@ DEF TILE_TOP_Y EQU 2 * TILE_HEIGHT - TILE_HEIGHT - TILE_HEIGHT / 2
 DEF TILE_MIDDLE_Y EQU SCREEN_HEIGHT / 2 + 2 * TILE_HEIGHT - TILE_HEIGHT - TILE_HEIGHT / 2 
 DEF MAX_OBJECTS EQU 10
 DEF MAX_VELOCITY EQU 8
-DEF SCROLL_SPEED_BG EQU 0
+DEF SCROLL_SPEED_BG EQU 1
 DEF SCROLL_SPEED_FG EQU 2
 DEF FOREGROUND_START_Y EQU 96
 
@@ -78,7 +78,7 @@ SECTION "Header", ROM0[$100]
 
 	; Draw player object
 	ld hl, _OAMRAM
-	ld a, 0
+	ld a, FOREGROUND_START_Y
 	ld b, 80 - 4
 	ld c, $0 
 	call SpawnObjectWithDefaultAttributes
@@ -356,7 +356,7 @@ UpdatePositionY:
 	ld b, a
 
 	ld a, [_OAMRAM ] ; current Y coordinate
-	cp a, TILE_MIDDLE_Y
+	cp a, FOREGROUND_START_Y
 	jp nc, .ScrollDown
 
 	ld a, [_OAMRAM ]
@@ -415,7 +415,7 @@ SetParallaxScroll:
 	add a, b
 	ld [wBgScrollFast], a
 
-	ld a, [wVelY]
+	ld a, [wVelX]
 	ld b, a
 	ld a, [wBgScrollFastX]
 	add a, b
@@ -739,12 +739,34 @@ LYC::
     reti
 
 .scrollForeground
-	; ld b, a
+	ld b, a ; store rLY
+
+	ld a, [wAngle]
+	cp a, 1
+	jp c, .NoCurve
+
+	ld a, [wAngleNeg]
+	cp a, 1
+	jp nc, .CurveLeft
+
+.CurveRight:
+	ld a, 128 + FOREGROUND_START_Y ; offset to center
+	sub a, b
+	ld [rSCX], a
+	jp .DoneCurve
+
+.CurveLeft:
 	; ld a, [wBgScrollFastX]
-	ld a, 128
-	; add a, b
+	ld a, 128 - FOREGROUND_START_Y ; offset to center
+	add a, b
+	ld [rSCX], a
+	jp .DoneCurve
+
+.NoCurve:
+	ld a, 128; offset to center
 	ld [rSCX], a
 
+.DoneCurve:
 	ld a, [wBgScrollFast]
 	ld [rSCY], a
 	
