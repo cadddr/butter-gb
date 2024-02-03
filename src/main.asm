@@ -129,68 +129,68 @@ SECTION "Header", ROM0[$100]
 
 	; Draw trees left
 	ld a, FOREGROUND_START_Y - 8 ;1
-	ld b, 32 - 4
+	ld b, 60 - 4
 	ld c, $A
 	call SpawnObjectWithDefaultAttributes
 
 	ld a, FOREGROUND_START_Y
-	ld b, 32 - 4
+	ld b, 60 - 4
 	ld c, $B
 	call SpawnObjectWithDefaultAttributes
 
 	ld a, FOREGROUND_START_Y - 8 ;2
-	ld b, 32 + 4
+	ld b, 60 + 4
 	ld c, $C
 	call SpawnObjectWithDefaultAttributes
 
 	ld a, FOREGROUND_START_Y
-	ld b, 32 + 4
+	ld b, 60 + 4
 	ld c, $D
 	call SpawnObjectWithDefaultAttributes
 
 	ld a, FOREGROUND_START_Y - 8 ;3
-	ld b, 32 + 12
+	ld b, 60 + 12
 	ld c, $E
 	call SpawnObjectWithDefaultAttributes
 
 	ld a, FOREGROUND_START_Y
-	ld b, 32 + 12
+	ld b, 60 + 12
 	ld c, $F
 	call SpawnObjectWithDefaultAttributes
 
 	; Draw trees right
 	ld a, FOREGROUND_START_Y - 8 ;1
-	ld b, 160 - (32 - 4)
+	ld b, 160 - (68 - 4)
 	ld c, $A
 	ld d, $20
 	call SpawnObject
 
 	ld a, FOREGROUND_START_Y
-	ld b, 160 - (32 - 4)
+	ld b, 160 - (68 - 4)
 	ld c, $B
 	ld d, $20
 	call SpawnObject
 
 	ld a, FOREGROUND_START_Y - 8 ;2
-	ld b, 160 - (32 + 4)
+	ld b, 160 - (68 + 4)
 	ld c, $C
 	ld d, $20
 	call SpawnObject
 
 	ld a, FOREGROUND_START_Y
-	ld b, 160 - (32 + 4)
+	ld b, 160 - (68 + 4)
 	ld c, $D
 	ld d, $20
 	call SpawnObject
 
 	ld a, FOREGROUND_START_Y - 8 ;3
-	ld b, 160 - (32 + 12)
+	ld b, 160 - (68 + 12)
 	ld c, $E
 	ld d, $20
 	call SpawnObject
 
 	ld a, FOREGROUND_START_Y
-	ld b, 160 - (32 + 12)
+	ld b, 160 - (68 + 12)
 	ld c, $F
 	ld d, $20
 	call SpawnObject
