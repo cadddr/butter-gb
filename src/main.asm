@@ -476,7 +476,7 @@ SetParallaxScroll:
 	add a, b
 	ld [wBgScrollSlow], a
 
-	ld a, 4;[wVelY]
+	ld a, 2;[wVelY]
 	; ld a, SCROLL_SPEED_FG
 	ld b, a
 	ld a, [wBgScrollFast]
