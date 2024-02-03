@@ -14,7 +14,8 @@ DEF MAX_OBJECTS EQU 10
 DEF MAX_VELOCITY EQU 8
 DEF SCROLL_SPEED_BG EQU 0
 DEF SCROLL_SPEED_FG EQU 0
-DEF FOREGROUND_START_Y EQU 64 + 8 + 48
+DEF FOREGROUND_START_Y EQU 144 - 32
+DEF FOREGROUND_TILEMAP_START EQU 224 - 4
 
 SECTION	"HBlank Handler",ROM0[$48]
 HBlankHandler::	; 40 cycles
@@ -254,7 +255,7 @@ SECTION "Header", ROM0[$100]
 	ld a, 0
     ld [wBgScrollSlow], a
 
-	ld a, 96 + 8 - FOREGROUND_START_Y
+	ld a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y
     ld [wBgScrollFast], a
 
 	ld a, 0
@@ -476,16 +477,16 @@ SetParallaxScroll:
 	add a, b
 	ld [wBgScrollSlow], a
 
-	ld a, 2;[wVelY]
+	ld a, 4;[wVelY]
 	; ld a, SCROLL_SPEED_FG
 	ld b, a
 	ld a, [wBgScrollFast]
 	add a, b
 
 	;;; reset scroll after 1 tile
-	cp a, 96 + 8 - FOREGROUND_START_Y + 8
+	cp a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y + 8
 	jp c, .noResetScrollPosition
-	ld a, 96 + 8 - FOREGROUND_START_Y
+	ld a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y
 .noResetScrollPosition:
 	;;;
 
