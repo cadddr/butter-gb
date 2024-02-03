@@ -14,7 +14,7 @@ DEF MAX_OBJECTS EQU 10
 DEF MAX_VELOCITY EQU 8
 DEF SCROLL_SPEED_BG EQU 0
 DEF SCROLL_SPEED_FG EQU 0
-DEF FOREGROUND_START_Y EQU 64 + 8
+DEF FOREGROUND_START_Y EQU 64 + 8 + 48
 
 SECTION	"HBlank Handler",ROM0[$48]
 HBlankHandler::	; 40 cycles
@@ -127,73 +127,73 @@ SECTION "Header", ROM0[$100]
 	ld c, $9
 	call SpawnObjectWithDefaultAttributes
 
-	; Draw trees left
-	ld a, FOREGROUND_START_Y - 8 ;1
-	ld b, 60 - 4
-	ld c, $A
-	call SpawnObjectWithDefaultAttributes
+	; ; Draw trees left
+	; ld a, FOREGROUND_START_Y - 8 ;1
+	; ld b, 60 - 4
+	; ld c, $A
+	; call SpawnObjectWithDefaultAttributes
 
-	ld a, FOREGROUND_START_Y
-	ld b, 60 - 4
-	ld c, $B
-	call SpawnObjectWithDefaultAttributes
+	; ld a, FOREGROUND_START_Y
+	; ld b, 60 - 4
+	; ld c, $B
+	; call SpawnObjectWithDefaultAttributes
 
-	ld a, FOREGROUND_START_Y - 8 ;2
-	ld b, 60 + 4
-	ld c, $C
-	call SpawnObjectWithDefaultAttributes
+	; ld a, FOREGROUND_START_Y - 8 ;2
+	; ld b, 60 + 4
+	; ld c, $C
+	; call SpawnObjectWithDefaultAttributes
 
-	ld a, FOREGROUND_START_Y
-	ld b, 60 + 4
-	ld c, $D
-	call SpawnObjectWithDefaultAttributes
+	; ld a, FOREGROUND_START_Y
+	; ld b, 60 + 4
+	; ld c, $D
+	; call SpawnObjectWithDefaultAttributes
 
-	ld a, FOREGROUND_START_Y - 8 ;3
-	ld b, 60 + 12
-	ld c, $E
-	call SpawnObjectWithDefaultAttributes
+	; ld a, FOREGROUND_START_Y - 8 ;3
+	; ld b, 60 + 12
+	; ld c, $E
+	; call SpawnObjectWithDefaultAttributes
 
-	ld a, FOREGROUND_START_Y
-	ld b, 60 + 12
-	ld c, $F
-	call SpawnObjectWithDefaultAttributes
+	; ld a, FOREGROUND_START_Y
+	; ld b, 60 + 12
+	; ld c, $F
+	; call SpawnObjectWithDefaultAttributes
 
-	; Draw trees right
-	ld a, FOREGROUND_START_Y - 8 ;1
-	ld b, 160 - (68 - 4)
-	ld c, $A
-	ld d, $20
-	call SpawnObject
+	; ; Draw trees right
+	; ld a, FOREGROUND_START_Y - 8 ;1
+	; ld b, 160 - (68 - 4)
+	; ld c, $A
+	; ld d, $20
+	; call SpawnObject
 
-	ld a, FOREGROUND_START_Y
-	ld b, 160 - (68 - 4)
-	ld c, $B
-	ld d, $20
-	call SpawnObject
+	; ld a, FOREGROUND_START_Y
+	; ld b, 160 - (68 - 4)
+	; ld c, $B
+	; ld d, $20
+	; call SpawnObject
 
-	ld a, FOREGROUND_START_Y - 8 ;2
-	ld b, 160 - (68 + 4)
-	ld c, $C
-	ld d, $20
-	call SpawnObject
+	; ld a, FOREGROUND_START_Y - 8 ;2
+	; ld b, 160 - (68 + 4)
+	; ld c, $C
+	; ld d, $20
+	; call SpawnObject
 
-	ld a, FOREGROUND_START_Y
-	ld b, 160 - (68 + 4)
-	ld c, $D
-	ld d, $20
-	call SpawnObject
+	; ld a, FOREGROUND_START_Y
+	; ld b, 160 - (68 + 4)
+	; ld c, $D
+	; ld d, $20
+	; call SpawnObject
 
-	ld a, FOREGROUND_START_Y - 8 ;3
-	ld b, 160 - (68 + 12)
-	ld c, $E
-	ld d, $20
-	call SpawnObject
+	; ld a, FOREGROUND_START_Y - 8 ;3
+	; ld b, 160 - (68 + 12)
+	; ld c, $E
+	; ld d, $20
+	; call SpawnObject
 
-	ld a, FOREGROUND_START_Y
-	ld b, 160 - (68 + 12)
-	ld c, $F
-	ld d, $20
-	call SpawnObject
+	; ld a, FOREGROUND_START_Y
+	; ld b, 160 - (68 + 12)
+	; ld c, $F
+	; ld d, $20
+	; call SpawnObject
 
 	; Turn the LCD on
 	ld a, LCDCF_ON | LCDCF_BGON | LCDCF_OBJON ;| LCDCF_OBJ16
@@ -254,7 +254,7 @@ SECTION "Header", ROM0[$100]
 	ld a, 0
     ld [wBgScrollSlow], a
 
-	ld a, 0
+	ld a, 96 + 8 - FOREGROUND_START_Y
     ld [wBgScrollFast], a
 
 	ld a, 0
@@ -476,11 +476,19 @@ SetParallaxScroll:
 	add a, b
 	ld [wBgScrollSlow], a
 
-	ld a, [wVelY]
+	ld a, 4;[wVelY]
 	; ld a, SCROLL_SPEED_FG
 	ld b, a
 	ld a, [wBgScrollFast]
 	add a, b
+
+	;;; reset scroll after 1 tile
+	cp a, 96 + 8 - FOREGROUND_START_Y + 8
+	jp c, .noResetScrollPosition
+	ld a, 96 + 8 - FOREGROUND_START_Y
+.noResetScrollPosition:
+	;;;
+
 	ld [wBgScrollFast], a
 
 	ld a, [wVelX]
@@ -813,29 +821,30 @@ LYC::
 	cp a, 1
 	jp c, .NoCurve
 
-	ld a, [wAngleNeg]
-	cp a, 1
-	jp nc, .CurveLeft
+	; ld a, [wAngleNeg]
+	; cp a, 1
+	; jp nc, .CurveLeft
 
-.CurveRight:
-	ld a, 128 + FOREGROUND_START_Y ; offset to center
-	sub a, b
-	ld [rSCX], a
-	jp .DoneCurve
+; .CurveRight:
+; 	ld a, 128 + FOREGROUND_START_Y ; offset to center
+; 	sub a, b
+; 	ld [rSCX], a
+; 	jp .DoneCurve
 
-.CurveLeft:
-	; ld a, [wBgScrollFastX]
-	ld a, 128 - FOREGROUND_START_Y ; offset to center
-	add a, b
-	ld [rSCX], a
-	jp .DoneCurve
+; .CurveLeft:
+; 	; ld a, [wBgScrollFastX]
+; 	ld a, 128 - FOREGROUND_START_Y ; offset to center
+; 	add a, b
+; 	ld [rSCX], a
+; 	jp .DoneCurve
 
 .NoCurve:
 	ld a, 128; offset to center
 	ld [rSCX], a
 
 .DoneCurve:
-	ld a, 112;[wBgScrollFast]
+	ld a, [wBgScrollFast] ;104;
+
 	ld [rSCY], a
 	
     pop af
