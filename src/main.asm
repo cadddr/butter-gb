@@ -835,7 +835,7 @@ LYC::
 	ld [rSCX], a
 
 .DoneCurve:
-	ld a, 128;[wBgScrollFast]
+	ld a, 112;[wBgScrollFast]
 	ld [rSCY], a
 	
     pop af
