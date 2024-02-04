@@ -14,8 +14,8 @@ DEF MAX_OBJECTS EQU 10
 DEF MAX_VELOCITY EQU 8
 DEF SCROLL_SPEED_BG EQU 0
 DEF SCROLL_SPEED_FG EQU 0
-DEF FOREGROUND_START_Y EQU 144 - 32
-DEF FOREGROUND_TILEMAP_START EQU 224 - 4
+DEF FOREGROUND_START_Y EQU 144 - 24 ;  subtract height of foreground tiles
+DEF FOREGROUND_TILEMAP_START EQU 256 - 32 - 4 ; 256 - height of foreground - extra half tile
 
 SECTION	"HBlank Handler",ROM0[$48]
 HBlankHandler::	; 40 cycles
@@ -484,7 +484,7 @@ SetParallaxScroll:
 	add a, b
 
 	;;; reset scroll after 1 tile
-	cp a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y + 8
+	cp a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y + 8 + 1
 	jp c, .noResetScrollPosition
 	ld a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y
 .noResetScrollPosition:
