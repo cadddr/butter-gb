@@ -11,8 +11,8 @@ DEF TILE_HEIGHT EQU 8
 DEF TILE_TOP_Y EQU 2 * TILE_HEIGHT - TILE_HEIGHT - TILE_HEIGHT / 2 
 DEF TILE_MIDDLE_Y EQU SCREEN_HEIGHT / 2 + 2 * TILE_HEIGHT - TILE_HEIGHT - TILE_HEIGHT / 2 
 DEF MAX_OBJECTS EQU 10
-DEF MAX_VELOCITY EQU 8
-DEF SCROLL_SPEED_BG EQU 0
+DEF MAX_VELOCITY EQU 8 - 2
+DEF SCROLL_SPEED_BG EQU 1
 DEF SCROLL_SPEED_FG EQU 0
 DEF FOREGROUND_START_Y EQU 144 - 3 * 8 ;  subtract height of foreground tiles
 DEF FOREGROUND_TILEMAP_START EQU 256 - 32 - 4 ; 256 - height of foreground - extra half tile
@@ -128,73 +128,73 @@ SECTION "Header", ROM0[$100]
 	ld c, $9
 	call SpawnObjectWithDefaultAttributes
 
-	; ; Draw trees left
-	; ld a, FOREGROUND_START_Y - 8 ;1
-	; ld b, 60 - 4
-	; ld c, $A
-	; call SpawnObjectWithDefaultAttributes
+	; Draw trees left
+	ld a, FOREGROUND_START_Y - 8 ;1
+	ld b, 0 - 4
+	ld c, $A
+	call SpawnObjectWithDefaultAttributes
 
-	; ld a, FOREGROUND_START_Y
-	; ld b, 60 - 4
-	; ld c, $B
-	; call SpawnObjectWithDefaultAttributes
+	ld a, FOREGROUND_START_Y
+	ld b, 0 - 4
+	ld c, $B
+	call SpawnObjectWithDefaultAttributes
 
-	; ld a, FOREGROUND_START_Y - 8 ;2
-	; ld b, 60 + 4
-	; ld c, $C
-	; call SpawnObjectWithDefaultAttributes
+	ld a, FOREGROUND_START_Y - 8 ;2
+	ld b, 0 + 4
+	ld c, $C
+	call SpawnObjectWithDefaultAttributes
 
-	; ld a, FOREGROUND_START_Y
-	; ld b, 60 + 4
-	; ld c, $D
-	; call SpawnObjectWithDefaultAttributes
+	ld a, FOREGROUND_START_Y
+	ld b, 0 + 4
+	ld c, $D
+	call SpawnObjectWithDefaultAttributes
 
-	; ld a, FOREGROUND_START_Y - 8 ;3
-	; ld b, 60 + 12
-	; ld c, $E
-	; call SpawnObjectWithDefaultAttributes
+	ld a, FOREGROUND_START_Y - 8 ;3
+	ld b, 0 + 12
+	ld c, $E
+	call SpawnObjectWithDefaultAttributes
 
-	; ld a, FOREGROUND_START_Y
-	; ld b, 60 + 12
-	; ld c, $F
-	; call SpawnObjectWithDefaultAttributes
+	ld a, FOREGROUND_START_Y
+	ld b, 0 + 12
+	ld c, $F
+	call SpawnObjectWithDefaultAttributes
 
-	; ; Draw trees right
-	; ld a, FOREGROUND_START_Y - 8 ;1
-	; ld b, 160 - (68 - 4)
-	; ld c, $A
-	; ld d, $20
-	; call SpawnObject
+	; Draw trees right
+	ld a, FOREGROUND_START_Y - 8 ;1
+	ld b, 160 - (8 - 4)
+	ld c, $A
+	ld d, $20
+	call SpawnObject
 
-	; ld a, FOREGROUND_START_Y
-	; ld b, 160 - (68 - 4)
-	; ld c, $B
-	; ld d, $20
-	; call SpawnObject
+	ld a, FOREGROUND_START_Y
+	ld b, 160 - (8- 4)
+	ld c, $B
+	ld d, $20
+	call SpawnObject
 
-	; ld a, FOREGROUND_START_Y - 8 ;2
-	; ld b, 160 - (68 + 4)
-	; ld c, $C
-	; ld d, $20
-	; call SpawnObject
+	ld a, FOREGROUND_START_Y - 8 ;2
+	ld b, 160 - (8 + 4)
+	ld c, $C
+	ld d, $20
+	call SpawnObject
 
-	; ld a, FOREGROUND_START_Y
-	; ld b, 160 - (68 + 4)
-	; ld c, $D
-	; ld d, $20
-	; call SpawnObject
+	ld a, FOREGROUND_START_Y
+	ld b, 160 - (8 + 4)
+	ld c, $D
+	ld d, $20
+	call SpawnObject
 
-	; ld a, FOREGROUND_START_Y - 8 ;3
-	; ld b, 160 - (68 + 12)
-	; ld c, $E
-	; ld d, $20
-	; call SpawnObject
+	ld a, FOREGROUND_START_Y - 8 ;3
+	ld b, 160 - (8 + 12)
+	ld c, $E
+	ld d, $20
+	call SpawnObject
 
-	; ld a, FOREGROUND_START_Y
-	; ld b, 160 - (68 + 12)
-	; ld c, $F
-	; ld d, $20
-	; call SpawnObject
+	ld a, FOREGROUND_START_Y
+	ld b, 160 - (8 + 12)
+	ld c, $F
+	ld d, $20
+	call SpawnObject
 
 	; Turn the LCD on
 	ld a, LCDCF_ON | LCDCF_BGON | LCDCF_OBJON ;| LCDCF_OBJ16
@@ -477,7 +477,7 @@ SetParallaxScroll:
 	add a, b
 	ld [wBgScrollSlow], a
 
-	ld a, 1;[wVelY]
+	ld a, [wVelY]
 	; ld a, SCROLL_SPEED_FG
 	ld b, a
 	ld a, [wBgScrollFast]
