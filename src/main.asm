@@ -115,14 +115,20 @@ UpdatePositionY:
 	ret
 	
 .ScrollDown:
+	ld a, [wBgScrollSlow]
+	cp a, 96
+	jp nc, .ZeroVelY
+
 	push hl
 	ld hl, mBackgroundScroll
 	call AddToScaledValueAndDescaleResult
 	pop hl
-	cp a, 96
-	jp nc, .NoUpdateScroll
 	ld [wBgScrollSlow], a
-.NoUpdateScroll:
+	ret
+	
+.ZeroVelY:
+	ld a, 0
+	ld [wVelY], a
 	ret
 
 
