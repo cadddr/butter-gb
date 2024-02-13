@@ -86,6 +86,39 @@ UpdateKeys:
   .knownret
     ret
 
+; @param b: how much to scroll by
+; @param hl: address of first byte
+; @returns a: de-scaled low byte of resulting value
+AddToScaledValueAndDescaleResult:
+  ; Increase our scaled integer by 5
+  ; Get our true (non-scaled) value, and save it for later usage in bc
+	ld a, [hl] ; [mBackgroundScroll+0] - low?
+  add a, b
+  ld b, a
+  ld [hli], a ; [mBackgroundScroll+0]
+  ld a, [hl]; [mBackgroundScroll+1] - high?
+  adc a, 0 ; add carry flag
+  ld c, a
+  ld [hl], a ; [mBackgroundScroll+1]
+
+	; Descale our scaled integer 
+  ; shift bits to the right 4 spaces
+  srl c   ; Arithmetic shift right 1 bit, bit 0 goes to carry flag, 0 is put into bit 7.
+  rr b ; 9-bit rotation to the right. The carry is copied into bit 7, and the bit leaving on the right is copied into the carry.
+
+  srl c
+  rr b
+
+  srl c
+  rr b
+
+  srl c
+  rr b
+
+  ; Use the de-scaled low byte as the backgrounds position
+  ld a, b
+	
+	ret
 
 ; @param a: value to be clipped
 ; @param b: max value to clip by

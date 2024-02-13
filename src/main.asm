@@ -15,7 +15,7 @@ HBlankHandler::	; 40 cycles
 	push	af		; 4
 	push	hl		; 4
 
-	call LYC
+	; call LYC
 
 	pop	hl		; 3
 	pop	af		; 3
@@ -116,36 +116,41 @@ UpdatePositionY:
 	
 .ScrollDown:
 	; call ScrollBackgroundY
+	push hl
+	ld hl, mBackgroundScroll
+	call AddToScaledValueAndDescaleResult
+	ld [rSCY], a
+	pop hl
 	ret
 
-; @param b: how much to scroll by
-ScrollBackgroundY:
-	ld a, [mBackgroundScroll+0]
-    add a, b
-    ld b, a
-    ld [mBackgroundScroll+0], a
-    ld a, [mBackgroundScroll+1]
-    adc a, 0
-    ld c, a
-    ld [mBackgroundScroll+1], a
+; ; @param b: how much to scroll by
+; ScrollBackgroundY:
+; 	ld a, [mBackgroundScroll+0]
+;     add a, b
+;     ld b, a
+;     ld [mBackgroundScroll+0], a
+;     ld a, [mBackgroundScroll+1]
+;     adc a, 0
+;     ld c, a
+;     ld [mBackgroundScroll+1], a
 
-	;;; TODO: with scaling on, scroll speed is out of sync with velocity
-	; Descale our scaled integer 
-    ; shift bits to the right 4 spaces
-    ; srl c
-    ; rr b
-    ; srl c
-    ; rr b
-    ; srl c
-    ; rr b
-    ; srl c
-    ; rr b
+; 	;;; TODO: with scaling on, scroll speed is out of sync with velocity
+; 	; Descale our scaled integer 
+;     ; shift bits to the right 4 spaces
+;     srl c
+;     rr b
+;     srl c
+;     rr b
+;     srl c
+;     rr b
+;     srl c
+;     rr b
 
-    ; Use the de-scaled low byte as the backgrounds position
-    ld a, b
-    ld [rSCY], a
+;     ; Use the de-scaled low byte as the backgrounds position
+;     ld a, b
+;     ld [rSCY], a
 	
-	ret
+; 	ret
 
 ; @ TODO: should be velocity dependent
 SetParallaxScroll:
