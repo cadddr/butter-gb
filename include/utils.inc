@@ -85,5 +85,30 @@ UpdateKeys:
     or a, $F0 ; A7-4 = 1; A3-0 = unpressed keys
   .knownret
     ret
+
+
+; @param a: value to be clipped
+; @param b: max value to clip by
+; @returns a: clipped to max value
+ClipByMaximum:
+	inc b
+	cp a, b
+	dec b
+	jp c, NoClipMax
+	ld a, b
+
+NoClipMax:
+	ret
+
+; @param a: value to be clipped
+; @param b: min value to clip by
+; @returns a: clipped to min value
+ClipByMinimum:
+	cp a, b
+	jp nc, NoClipMin
+	ld a, b
+
+NoClipMin:
+	ret
     
   
