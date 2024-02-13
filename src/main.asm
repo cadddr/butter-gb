@@ -4,18 +4,10 @@ INCLUDE "hardware.inc/hardware.inc"
 
 INCLUDE "utils.inc"
 INCLUDE "tiles.inc"
-
-DEF UPDATE_EVERY_FRAMES EQU 5
-DEF SCREEN_HEIGHT EQU 144 
-DEF TILE_HEIGHT EQU 8
-DEF TILE_TOP_Y EQU 2 * TILE_HEIGHT - TILE_HEIGHT - TILE_HEIGHT / 2 
-DEF TILE_MIDDLE_Y EQU SCREEN_HEIGHT / 2 + 2 * TILE_HEIGHT - TILE_HEIGHT - TILE_HEIGHT / 2 
-DEF MAX_OBJECTS EQU 10
-DEF MAX_VELOCITY EQU 8 - 2
-DEF SCROLL_SPEED_BG EQU 1
-DEF SCROLL_SPEED_FG EQU 0
-DEF FOREGROUND_START_Y EQU 144 - 3 * 8 ;  subtract height of foreground tiles
-DEF FOREGROUND_TILEMAP_START EQU 256 - 32 - 4 ; 256 - height of foreground - extra half tile
+INCLUDE "constants.inc"
+INCLUDE "level.inc"
+INCLUDE "player.inc"
+INCLUDE "objects.inc"
 
 SECTION	"HBlank Handler",ROM0[$48]
 HBlankHandler::	; 40 cycles
@@ -53,160 +45,15 @@ SECTION "Header", ROM0[$100]
 	ld a, 0
 	ld [rLCDC], a
 
-	; Copy the tile data
-	ld de, Tiles
-	ld hl, $9000
-	ld bc, TilesEnd - Tiles
-	call Memcopy
-
-	; Copy the tilemap
-	ld de, Tilemap
-	ld hl, $9800
-	ld bc, TilemapEnd - Tilemap
-	call Memcopy
-
-	; Copy the tile data
-	ld de, Player
-	ld hl, $8000
-	ld bc, PlayerEnd - Player
-	call Memcopy
-
-	; Initialize object memory
-	ld a, 0
-	ld b, 160
-	ld hl, _OAMRAM
-	call ClearOam
-
-	; Draw player object
-	ld hl, _OAMRAM
-	ld a, FOREGROUND_START_Y
-	ld b, 80 - 4
-	ld c, $0 
-	call SpawnObjectWithDefaultAttributes
-
-	; Draw gondola object
-	ld hl, _OAMRAM + MAX_OBJECTS * 4
-	ld a, 88
-	ld b, 160
-	ld c, $6
-	call SpawnObjectWithDefaultAttributes
-	
-	ld a, 88 + 8
-	ld b, 160
-	ld c, $7
-	call SpawnObjectWithDefaultAttributes
-	
-	ld a, 88
-	ld b, 160 + 8
-	ld c, $8
-	call SpawnObjectWithDefaultAttributes
-
-	ld a, 88 + 8
-	ld b, 160 + 8
-	ld c, $9
-	call SpawnObjectWithDefaultAttributes
-
-	; Draw gondola object
-	ld hl, _OAMRAM + MAX_OBJECTS * 4 + 16
-	ld a, 0
-	ld b, 0
-	ld c, $6
-	call SpawnObjectWithDefaultAttributes
-	
-	ld a, 0 + 8
-	ld b, 0
-	ld c, $7
-	call SpawnObjectWithDefaultAttributes
-	
-	ld a, 0
-	ld b, 0 + 8
-	ld c, $8
-	call SpawnObjectWithDefaultAttributes
-
-	ld a, 0 + 8
-	ld b, 0 + 8
-	ld c, $9
-	call SpawnObjectWithDefaultAttributes
-
-	; Draw trees left
-	ld a, FOREGROUND_START_Y - 8 ;1
-	ld b, 0 - 4
-	ld c, $A
-	call SpawnObjectWithDefaultAttributes
-
-	ld a, FOREGROUND_START_Y
-	ld b, 0 - 4
-	ld c, $B
-	call SpawnObjectWithDefaultAttributes
-
-	ld a, FOREGROUND_START_Y - 8 ;2
-	ld b, 0 + 4
-	ld c, $C
-	call SpawnObjectWithDefaultAttributes
-
-	ld a, FOREGROUND_START_Y
-	ld b, 0 + 4
-	ld c, $D
-	call SpawnObjectWithDefaultAttributes
-
-	ld a, FOREGROUND_START_Y - 8 ;3
-	ld b, 0 + 12
-	ld c, $E
-	call SpawnObjectWithDefaultAttributes
-
-	ld a, FOREGROUND_START_Y
-	ld b, 0 + 12
-	ld c, $F
-	call SpawnObjectWithDefaultAttributes
-
-	; Draw trees right
-	ld a, FOREGROUND_START_Y - 8 ;1
-	ld b, 160 - (8 - 4)
-	ld c, $A
-	ld d, $20
-	call SpawnObject
-
-	ld a, FOREGROUND_START_Y
-	ld b, 160 - (8- 4)
-	ld c, $B
-	ld d, $20
-	call SpawnObject
-
-	ld a, FOREGROUND_START_Y - 8 ;2
-	ld b, 160 - (8 + 4)
-	ld c, $C
-	ld d, $20
-	call SpawnObject
-
-	ld a, FOREGROUND_START_Y
-	ld b, 160 - (8 + 4)
-	ld c, $D
-	ld d, $20
-	call SpawnObject
-
-	ld a, FOREGROUND_START_Y - 8 ;3
-	ld b, 160 - (8 + 12)
-	ld c, $E
-	ld d, $20
-	call SpawnObject
-
-	ld a, FOREGROUND_START_Y
-	ld b, 160 - (8 + 12)
-	ld c, $F
-	ld d, $20
-	call SpawnObject
+	call LoadLevelTiles
+	call InitPlayer
+	call InitObjects
 
 	; Turn the LCD on
 	ld a, LCDCF_ON | LCDCF_BGON | LCDCF_OBJON ;| LCDCF_OBJ16
 	ld [rLCDC], a
 
-	; During the first (blank) frame, initialize display registers
-	ld a, %11100100 ; palette
-	ld [rBGP], a
-	ld [rOBP0], a
-	ld a, %00000000 ; palette
-	ld [rOBP1], a
-
+	call InitPalettes
 
 	ld	a,STATF_MODE00
 	ldh	[rSTAT],a

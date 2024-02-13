@@ -41,6 +41,15 @@ ClearOam:
 
   ret
 
+InitPalettes:
+  ; During the first (blank) frame, initialize display registers
+	ld a, %11100100 ; palette
+	ld [rBGP], a
+	ld [rOBP0], a
+	ld a, %00000000 ; palette
+	ld [rOBP1], a
+  ret
+
 UpdateKeys:
     ; Poll half the controller
     ld a, P1F_GET_BTN
