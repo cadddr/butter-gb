@@ -10,38 +10,30 @@ DEF SCROLL_SPEED_FG EQU 0
 DEF FOREGROUND_START_Y EQU 144 - 3 * 8 ;  subtract height of foreground tiles
 DEF FOREGROUND_TILEMAP_START EQU 256 - 32 - 4 ; 256 - height of foreground - extra half tile
 
-
-SECTION "Counter", WRAM0
-wFrameCounter: db ; if changed to ds 0 appears to give scaled refresh
+SECTION "Variable Defines", WRAM0
+wFrameCounter: db
 wObjectCounter: db
 
-SECTION "Input Variables", WRAM0
 wCurKeys: db
 wNewKeys: db
 
-SECTION "Player Variables", WRAM0
 wVel: db
-
 wVelY: db
 wVelX: db
 
 wAccel: db
 wAngle: db
-
 wAngleNeg: db
 
 mBackgroundScroll:: dw
-wTemp: dw
-
 wBgScrollSlow: db
 wBgScrollFast: db
 wBgScrollFastX: db
 
+wTemp: dw
 
 SECTION "Variables Init", ROM0
-
 InitVariables:
-    ;;;;;;;; VARIABLES INIT
 	ld a, 0
 	ld [wFrameCounter], a
 
@@ -87,5 +79,4 @@ InitVariables:
 
 	ld hl, _OAMRAM + 4
 
-;;;;;;;; END VARIABLES INIT
     ret
