@@ -15,7 +15,7 @@ HBlankHandler::	; 40 cycles
 	push	af		; 4
 	push	hl		; 4
 
-	; call LYC
+	call LYC
 
 	pop	hl		; 3
 	pop	af		; 3
@@ -115,54 +115,20 @@ UpdatePositionY:
 	ret
 	
 .ScrollDown:
-	; call ScrollBackgroundY
 	push hl
 	ld hl, mBackgroundScroll
 	call AddToScaledValueAndDescaleResult
-	ld [rSCY], a
 	pop hl
+	cp a, 96
+	jp nc, .NoUpdateScroll
+	ld [wBgScrollSlow], a
+.NoUpdateScroll:
 	ret
 
-; ; @param b: how much to scroll by
-; ScrollBackgroundY:
-; 	ld a, [mBackgroundScroll+0]
-;     add a, b
-;     ld b, a
-;     ld [mBackgroundScroll+0], a
-;     ld a, [mBackgroundScroll+1]
-;     adc a, 0
-;     ld c, a
-;     ld [mBackgroundScroll+1], a
-
-; 	;;; TODO: with scaling on, scroll speed is out of sync with velocity
-; 	; Descale our scaled integer 
-;     ; shift bits to the right 4 spaces
-;     srl c
-;     rr b
-;     srl c
-;     rr b
-;     srl c
-;     rr b
-;     srl c
-;     rr b
-
-;     ; Use the de-scaled low byte as the backgrounds position
-;     ld a, b
-;     ld [rSCY], a
-	
-; 	ret
 
 ; @ TODO: should be velocity dependent
-SetParallaxScroll:
-	;;;;;;;;;;;;;;
-	ld a, SCROLL_SPEED_BG
-	ld b, a
-	ld a, [wBgScrollSlow]
-	add a, b
-	ld [wBgScrollSlow], a
-
+SetParallaxScroll: ; this is for the scrolling foreground
 	ld a, [wVelY]
-	; ld a, SCROLL_SPEED_FG
 	ld b, a
 	ld a, [wBgScrollFast]
 	add a, b
@@ -171,9 +137,9 @@ SetParallaxScroll:
 	cp a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y + 11 + 1
 	jp c, .noResetScrollPosition
 	ld a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y - 4
+
 .noResetScrollPosition:
 	;;;
-
 	ld [wBgScrollFast], a
 
 	ld a, [wVelX]
@@ -181,6 +147,60 @@ SetParallaxScroll:
 	ld a, [wBgScrollFastX]
 	add a, b
 	ld [wBgScrollFastX], a
+
+	ret
+
+; scroll background before line 64 at slow speed and after at fast speed
+LYC::
+    push af
+    ldh a, [rLY]
+    cp FOREGROUND_START_Y - 1
+    jr nc, .scrollForeground
+
+	ld a, 0
+	ld [rSCX], a
+
+	ld a, [wBgScrollSlow]
+	ld [rSCY], a
+
+    pop af
+    reti
+
+.scrollForeground
+	ld b, a ; store rLY
+
+	ld a, [wAngle]
+	cp a, 1
+	jp c, .NoCurve
+
+	; ld a, [wAngleNeg]
+	; cp a, 1
+	; jp nc, .CurveLeft
+
+; .CurveRight:
+; 	ld a, 128 + FOREGROUND_START_Y ; offset to center
+; 	sub a, b
+; 	ld [rSCX], a
+; 	jp .DoneCurve
+
+; .CurveLeft:
+; 	; ld a, [wBgScrollFastX]
+; 	ld a, 128 - FOREGROUND_START_Y ; offset to center
+; 	add a, b
+; 	ld [rSCX], a
+; 	jp .DoneCurve
+
+.NoCurve:
+	ld a, 128; offset to center
+	ld [rSCX], a
+
+.DoneCurve:
+	ld a, [wBgScrollFast] ;104;
+
+	ld [rSCY], a
+	
+    pop af
+    reti
 
 ; @
 UpdatePositionX:
@@ -288,55 +308,5 @@ EnforceObjectLimit:
 
 	ret
 
-; scroll background before line 64 at slow speed and after at fast speed
-LYC::
-    push af
-    ldh a, [rLY]
-    cp FOREGROUND_START_Y - 1
-    jr nc, .scrollForeground
 
-	ld a, 0
-	ld [rSCX], a
-
-	ld a, [wBgScrollSlow]
-	ld [rSCY], a
-
-    pop af
-    reti
-
-.scrollForeground
-	ld b, a ; store rLY
-
-	ld a, [wAngle]
-	cp a, 1
-	jp c, .NoCurve
-
-	; ld a, [wAngleNeg]
-	; cp a, 1
-	; jp nc, .CurveLeft
-
-; .CurveRight:
-; 	ld a, 128 + FOREGROUND_START_Y ; offset to center
-; 	sub a, b
-; 	ld [rSCX], a
-; 	jp .DoneCurve
-
-; .CurveLeft:
-; 	; ld a, [wBgScrollFastX]
-; 	ld a, 128 - FOREGROUND_START_Y ; offset to center
-; 	add a, b
-; 	ld [rSCX], a
-; 	jp .DoneCurve
-
-.NoCurve:
-	ld a, 128; offset to center
-	ld [rSCX], a
-
-.DoneCurve:
-	ld a, [wBgScrollFast] ;104;
-
-	ld [rSCY], a
-	
-    pop af
-    reti
 
