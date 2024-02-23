@@ -313,6 +313,3 @@ EnforceObjectLimit:
 	ld [wObjectCounter], a
 
 	ret
-
-
-
