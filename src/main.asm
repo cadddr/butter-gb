@@ -84,7 +84,7 @@ Main:
 	call WaitBeforeVBlank
 	call WaitVBlank
 	SkipNonKeyFrames ; only update every few frames
-	call LeaveTrailingMark
+	; call LeaveTrailingMark
 
 	call UpdatePlayerVelocity
 
@@ -99,6 +99,7 @@ Main:
 	; arrow buttons control snowboard angle to the slope which in turn affects acceleration and direction
 	HandleInput ; macro jumps back to main
 
+; controls apparent motion vs background scrolling
 ; @ return amount scrolled in b
 UpdatePositionY:
 	ld a, [wVelY] ; current Y velocity (absolute)
@@ -116,14 +117,14 @@ UpdatePositionY:
 	
 .ScrollDown:
 	ld a, [wBgScrollSlow]
-	cp a, 96
+	cp a, 96 ; end of mountain tiles
 	jp nc, .ZeroVelY
 
 	push hl
-	ld hl, mBackgroundScroll
+	ld hl, mBackgroundScroll ; virtual scrolling amount (scaled)
 	call AddToScaledValueAndDescaleResult
 	pop hl
-	ld [wBgScrollSlow], a
+	ld [wBgScrollSlow], a ; actual value used to set scroll register
 	ret
 	
 .ZeroVelY:
@@ -131,29 +132,38 @@ UpdatePositionY:
 	ld [wVelY], a
 	ret
 
-
+; 
 ; @ TODO: should be velocity dependent
 SetParallaxScroll: ; this is for the scrolling foreground
 	ld a, [wVelY]
-	ld b, a
+	cp a, 0
+	jp z, .Exit
+
+	ld b, a ; copy velocity
 	ld a, [wBgScrollFast]
 	add a, b
 
 	;;; reset scroll after 1 tile
-	cp a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y + 11 + 1
-	jp c, .noResetScrollPosition
-	ld a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y - 4
+; 	cp a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y + TILE_HEIGHT * FOREGROUND_ROWS; + TILE_HEIGHT / 2
+; 	jp c, .noResetScrollPosition
+; 	ld a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y; - TILE_HEIGHT / 2
 
-.noResetScrollPosition:
+; .noResetScrollPosition:
 	;;;
 	ld [wBgScrollFast], a
 
+	;;; used to set side scrolling for slope curving
 	ld a, [wVelX]
 	ld b, a
 	ld a, [wBgScrollFastX]
 	add a, b
 	ld [wBgScrollFastX], a
 
+	ld hl, _OAMRAM + MAX_OBJECTS * 4 + 16 * 2
+	call AnimateTrees
+	call AnimateTrees
+
+.Exit:
 	ret
 
 ; scroll background before line 64 at slow speed and after at fast speed
@@ -202,6 +212,14 @@ LYC::
 
 .DoneCurve:
 	ld a, [wBgScrollFast] ;104;
+	cp a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y + TILE_HEIGHT
+	jp c, .NoReset
+
+	sub a, TILE_HEIGHT
+	; ld a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y
+	ld [wBgScrollFast], a
+
+.NoReset:
 
 	ld [rSCY], a
 	
@@ -238,78 +256,3 @@ UpdatePositionX:
 	ld [_OAMRAM + 1], a ; write back updated X position
 
 	ret 
-
-LeaveTrailingMark:
-	ld a, [wVelY]
-	or a, a
-	jp nz, .Continue ; only leave traces when moving
-	ret 
-
-.Continue:
-	call EnforceObjectLimit
-
-	ld a, [_OAMRAM] ; create trail object at current coordinate
-	ld [hli], a
-	ld a, [_OAMRAM + 1]
-	ld [hli], a
-	ld a, [_OAMRAM + 2]
-	add a, 3 ; offset to trails tiles
-	ld [hli], a
-	ld a, [_OAMRAM + 3]
-	or a, $10 ; white palette
-	ld [hli], a 
-	
-	ld a, [rSCY]
-	cp a, 1
-	jp nc, .ScrollTrailsUp; not less than 1
-
-	ret
-
-.ScrollTrailsUp: ; if motion is done via scrolling, move all previous trails by velocity amount
-	ld a, [wVelY]
-	ld d, a
-
-	ld a, h ; store hl in memory
-	ld [wTemp], a
-	ld a, l
-	ld [wTemp + 1], a
-
-	ld hl, _OAMRAM + 4
-	ld bc, 4 * (MAX_OBJECTS - 1) ; length
-.Loop:
-	ld a, [hl]; get Y value
-	sub a, d
-	ld [hl], a
-
-	inc hl
-	inc hl
-	inc hl
-	inc hl
-
-	dec bc
-	dec bc
-	dec bc
-	dec bc
-
-	ld a, b
-    or a, c
-	jp nz, .Loop
-
-	ld a, [wTemp] ; restore hl from memory
-	ld h, a
-	ld a, [wTemp + 1]
-	ld l, a
-
-	ret
-
-EnforceObjectLimit:
-	ld a, [wObjectCounter]
-	cp a, MAX_OBJECTS ; has to be one more than two total objects for carry to occur
-	jp c, .NoResetObjects ; not less than
-	ld a, 1
-	ld hl, _OAMRAM + 4 ; the fact that it resets pointer to first object makes it hard to tell old vs new
-.NoResetObjects:
-	inc a
-	ld [wObjectCounter], a
-
-	ret

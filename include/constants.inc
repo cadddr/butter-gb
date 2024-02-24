@@ -1,5 +1,6 @@
 DEF UPDATE_EVERY_FRAMES EQU 5
-DEF SCREEN_HEIGHT EQU 144 
+DEF SCREEN_HEIGHT EQU 144
+DEF TILEMAP_HEIGHT EQU 256 
 DEF TILE_HEIGHT EQU 8
 DEF TILE_TOP_Y EQU 2 * TILE_HEIGHT - TILE_HEIGHT - TILE_HEIGHT / 2 
 DEF TILE_MIDDLE_Y EQU SCREEN_HEIGHT / 2 + 2 * TILE_HEIGHT - TILE_HEIGHT - TILE_HEIGHT / 2 
@@ -7,8 +8,10 @@ DEF MAX_OBJECTS EQU 10
 DEF MAX_VELOCITY EQU 6
 DEF SCROLL_SPEED_BG EQU 1
 DEF SCROLL_SPEED_FG EQU 0
-DEF FOREGROUND_START_Y EQU 144 - 3 * 8 ;  subtract height of foreground tiles
-DEF FOREGROUND_TILEMAP_START EQU 256 - 32 - 4 ; 256 - height of foreground - extra half tile
+DEF FOREGROUND_ROWS EQU 5
+DEF FOREGROUND_START_Y EQU SCREEN_HEIGHT - (FOREGROUND_ROWS - 1) * TILE_HEIGHT;  subtract height of foreground tiles
+DEF FOREGROUND_TILEMAP_START EQU TILEMAP_HEIGHT - (FOREGROUND_ROWS) * TILE_HEIGHT; 256 - height of foreground - extra half tile
+
 
 SECTION "Variable Defines", WRAM0
 wFrameCounter: db
@@ -71,7 +74,8 @@ InitVariables:
 	ld a, 0
     ld [wBgScrollSlow], a
 
-	ld a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y
+	; how much to scroll by initially so that foreground tiles are rendered right after background stops
+	ld a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y 
     ld [wBgScrollFast], a
 
 	ld a, 0
