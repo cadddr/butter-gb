@@ -21,7 +21,6 @@ HBlankHandler::	; 40 cycles
 	pop	af		; 3
 	reti		; 4
 
-
 SECTION "Header", ROM0[$100]
 
 	; This is your ROM's entry point
@@ -99,6 +98,37 @@ Main:
 	; arrow buttons control snowboard angle to the slope which in turn affects acceleration and direction
 	HandleInput ; macro jumps back to main
 
+; @
+UpdatePositionX:
+	ld a, [wVelX]
+	ld b, a
+
+	ld a, [wAngleNeg]
+	cp a, 1
+	jp nc, .MoveLeft
+
+.MoveRight:
+	ld a, [_OAMRAM + 1]
+	add a, b ; update X position with velocity value
+
+	ld b, 144
+	call ClipByMaximum
+	
+	ld [_OAMRAM + 1], a ; write back updated X position
+
+	ret 
+
+.MoveLeft:
+	ld a, [_OAMRAM + 1]
+	sub a, b ; update X position in negative directionwith velocity value
+
+	ld b, 20
+	call ClipByMinimum ; TODO this one is buggy
+
+	ld [_OAMRAM + 1], a ; write back updated X position
+
+	ret 
+
 ; controls apparent motion vs background scrolling
 ; @ return amount scrolled in b
 UpdatePositionY:
@@ -170,7 +200,7 @@ SetParallaxScroll: ; this is for the scrolling foreground
 LYC::
     push af
     ldh a, [rLY]
-    cp FOREGROUND_START_Y - 1
+    sub a, FOREGROUND_START_Y - 1
     jr nc, .scrollForeground
 
 	ld a, 0
@@ -183,11 +213,18 @@ LYC::
     reti
 
 .scrollForeground
-	ld b, a ; store rLY
+	sub a, (FOREGROUND_ROWS - 1) * TILE_HEIGHT ; excess over foreground height, breaks curving!
+	jp nc, .NoRestoreRly
+	ld a, 0
+	ld b, a
+	jp .NoCurve
+.NoRestoreRly:
+	ld a, (FOREGROUND_ROWS - 1) * TILE_HEIGHT
+	ld b, a ; store rLY - FOREGROUND_START_Y - foreground height
 
-	ld a, [wAngle]
-	cp a, 1
-	jp c, .NoCurve
+	; ld a, [wAngle]
+	; cp a, 1
+	; jp c, .NoCurve
 
 	; ld a, [wAngleNeg]
 	; cp a, 1
@@ -211,48 +248,16 @@ LYC::
 	ld [rSCX], a
 
 .DoneCurve:
-	ld a, [wBgScrollFast] ;104;
+	ld a, [wBgScrollFast] 
+	sub a, b
 	cp a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y + TILE_HEIGHT
 	jp c, .NoReset
-
+	; undo scroll beyond one tile height
 	sub a, TILE_HEIGHT
-	; ld a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y
 	ld [wBgScrollFast], a
 
 .NoReset:
-
 	ld [rSCY], a
 	
     pop af
     reti
-
-; @
-UpdatePositionX:
-	ld a, [wVelX]
-	ld b, a
-
-	ld a, [wAngleNeg]
-	cp a, 1
-	jp nc, .MoveLeft
-
-.MoveRight:
-	ld a, [_OAMRAM + 1]
-	add a, b ; update X position with velocity value
-
-	ld b, 144
-	call ClipByMaximum
-	
-	ld [_OAMRAM + 1], a ; write back updated X position
-
-	ret 
-
-.MoveLeft:
-	ld a, [_OAMRAM + 1]
-	sub a, b ; update X position in negative directionwith velocity value
-
-	ld b, 20
-	call ClipByMinimum ; TODO this one is buggy
-
-	ld [_OAMRAM + 1], a ; write back updated X position
-
-	ret 
