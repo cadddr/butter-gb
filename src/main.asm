@@ -134,9 +134,20 @@ UpdatePositionX:
 UpdatePositionY:
 	ld a, [wVelY] ; current Y velocity (absolute)
 	ld b, a
+	;;; shift foreground start by at most current velocity
+	add a, a
+	add a, a
+	add a, FOREGROUND_START_Y
+	ld c, a
+
+	; ld a, [wForegroundStartY]
+	ld a, c
+	ld [wForegroundStartY], a
+	; ld c, a
+	;;;
 
 	ld a, [_OAMRAM ] ; current Y coordinate
-	cp a, FOREGROUND_START_Y
+	cp a, c;FOREGROUND_START_Y
 	jp nc, .ScrollDown
 
 	ld a, [_OAMRAM ]
@@ -173,13 +184,6 @@ SetParallaxScroll: ; this is for the scrolling foreground
 	ld a, [wBgScrollFast]
 	add a, b
 
-	;;; reset scroll after 1 tile
-; 	cp a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y + TILE_HEIGHT * FOREGROUND_ROWS; + TILE_HEIGHT / 2
-; 	jp c, .noResetScrollPosition
-; 	ld a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y; - TILE_HEIGHT / 2
-
-; .noResetScrollPosition:
-	;;;
 	ld [wBgScrollFast], a
 
 	;;; used to set side scrolling for slope curving
@@ -199,8 +203,19 @@ SetParallaxScroll: ; this is for the scrolling foreground
 ; scroll background before line 64 at slow speed and after at fast speed
 LYC::
     push af
-    ldh a, [rLY]
-    sub a, FOREGROUND_START_Y - 1
+	
+	ld a, [wForegroundStartY]
+	ld b, a
+	; sub a, FOREGROUND_START_Y
+	; ld d, a
+
+	ld a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y + TILE_HEIGHT ; needed for later
+	; sub a, b
+	ld c, a
+    
+	ldh a, [rLY]
+	; dec b
+    sub a, b;FOREGROUND_START_Y - 1 ; rLY less movable foreground start
     jr nc, .scrollForeground
 
 	ld a, 0
@@ -249,8 +264,9 @@ LYC::
 
 .DoneCurve:
 	ld a, [wBgScrollFast] 
-	sub a, b
-	cp a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y + TILE_HEIGHT
+	sub a, b ; how much over foreground height have we scrolled
+	; sub a, d
+	cp a, c;FOREGROUND_TILEMAP_START - FOREGROUND_START_Y + TILE_HEIGHT
 	jp c, .NoReset
 	; undo scroll beyond one tile height
 	sub a, TILE_HEIGHT

@@ -9,7 +9,8 @@ DEF MAX_VELOCITY EQU 6
 DEF SCROLL_SPEED_BG EQU 1
 DEF SCROLL_SPEED_FG EQU 0
 DEF FOREGROUND_ROWS EQU 5
-DEF FOREGROUND_START_Y EQU SCREEN_HEIGHT - (FOREGROUND_ROWS - 1) * TILE_HEIGHT * 2;  subtract height of foreground tiles
+DEF FOREGROUND_START_Y EQU SCREEN_HEIGHT - (FOREGROUND_ROWS - 1) * TILE_HEIGHT ;* 2;  subtract height of foreground tiles
+; leave room for scrolling 1 tile high
 DEF FOREGROUND_TILEMAP_START EQU TILEMAP_HEIGHT - (FOREGROUND_ROWS) * TILE_HEIGHT; 256 - height of foreground - extra half tile
 
 
@@ -32,6 +33,7 @@ mBackgroundScroll:: dw
 wBgScrollSlow: db
 wBgScrollFast: db
 wBgScrollFastX: db
+wForegroundStartY: db
 
 wTemp: dw
 
@@ -81,6 +83,9 @@ InitVariables:
 	ld a, 0
     ld [wBgScrollFastX], a
 
-	ld hl, _OAMRAM + 4
+	ld a, FOREGROUND_START_Y
+	ld [wForegroundStartY], a
+
+	ld hl, _OAMRAM + 4 ; set to after player 
 
     ret
