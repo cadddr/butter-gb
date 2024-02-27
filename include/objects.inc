@@ -139,6 +139,7 @@ InitObjects:
 
 	ret
 
+; @
 AdvanceTileToNextFrame:
 	inc hl
 	inc hl

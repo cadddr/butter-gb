@@ -138,16 +138,12 @@ UpdatePositionY:
 	add a, a
 	add a, a
 	add a, FOREGROUND_START_Y
-	ld c, a
-
-	; ld a, [wForegroundStartY]
-	ld a, c
 	ld [wForegroundStartY], a
-	; ld c, a
+	ld c, a
 	;;;
 
 	ld a, [_OAMRAM ] ; current Y coordinate
-	cp a, c;FOREGROUND_START_Y
+	cp a, c;FOREGROUND_START_Y ; c
 	jp nc, .ScrollDown
 
 	ld a, [_OAMRAM ]
@@ -173,9 +169,9 @@ UpdatePositionY:
 	ld [wVelY], a
 	ret
 
-; 
-; @ TODO: should be velocity dependent
-SetParallaxScroll: ; this is for the scrolling foreground
+
+; @ 
+SetParallaxScroll: ; update foreground scrolling based on speed
 	ld a, [wVelY]
 	cp a, 0
 	jp z, .Exit
@@ -183,7 +179,6 @@ SetParallaxScroll: ; this is for the scrolling foreground
 	ld b, a ; copy velocity
 	ld a, [wBgScrollFast]
 	add a, b
-
 	ld [wBgScrollFast], a
 
 	;;; used to set side scrolling for slope curving
@@ -216,8 +211,10 @@ LYC::
 	ldh a, [rLY]
 	; dec b
     sub a, b;FOREGROUND_START_Y - 1 ; rLY less movable foreground start
+	; cp a, b
     jr nc, .scrollForeground
 
+.scrollBackground:
 	ld a, 0
 	ld [rSCX], a
 
@@ -227,9 +224,10 @@ LYC::
     pop af
     reti
 
-.scrollForeground
+.scrollForeground: ; or rather scroll so that foreground tiles get drawn
 	sub a, (FOREGROUND_ROWS - 1) * TILE_HEIGHT ; excess over foreground height, breaks curving!
 	jp nc, .NoRestoreRly
+.RestoreRly:
 	ld a, 0
 	ld b, a
 	jp .NoCurve
