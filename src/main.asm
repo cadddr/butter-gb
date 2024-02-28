@@ -195,45 +195,40 @@ SetParallaxScroll: ; update foreground scrolling based on speed
 .Exit:
 	ret
 
-; scroll background before line 64 at slow speed and after at fast speed
+; scroll background before foreground start line at slow speed and after at fast speed
 LYC::
     push af
 	
 	ld a, [wForegroundStartY]
 	ld b, a
-	; sub a, FOREGROUND_START_Y
-	; ld d, a
 
 	ld a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y + TILE_HEIGHT ; needed for later
-	; sub a, b
 	ld c, a
     
 	ldh a, [rLY]
-	; dec b
     sub a, b ; rLY less movable foreground start
-	; cp a, b ; does same but not modify a
     jr nc, .scrollForeground
 
 .scrollBackground:
-	ld a, 0
+	ld a, 0 ; reset horizontal scroll for background from whatever offset set for foreground
 	ld [rSCX], a
 
-	ld a, [wBgScrollSlow]
+	ld a, [wBgScrollSlow] ; set vertical scroll to a speed-dependent value
 	ld [rSCY], a
 
     pop af
     reti
 
 .scrollForeground: ; or rather scroll so that foreground tiles get drawn
-	sub a, (FOREGROUND_ROWS - 1) * TILE_HEIGHT ; excess over foreground height, breaks curving!
+	sub a, (FOREGROUND_ROWS - 1) * TILE_HEIGHT ; a: rLy - start gives excess over foreground height, breaks curving!
 	jp nc, .NoRestoreRly
 .RestoreRly:
 	ld a, 0
 	ld b, a
 	jp .NoCurve
 .NoRestoreRly:
-	ld a, (FOREGROUND_ROWS - 1) * TILE_HEIGHT
-	ld b, a ; store rLY - FOREGROUND_START_Y - foreground height
+	ld a, (FOREGROUND_ROWS - 1) * TILE_HEIGHT ; if rLy - start greater than foreground height, clip to foreground height
+	ld b, a
 
 	; ld a, [wAngle]
 	; cp a, 1
@@ -257,14 +252,12 @@ LYC::
 ; 	jp .DoneCurve
 
 .NoCurve:
-	ld a, 128; offset to center
+	ld a, 128; offset to center of off-screen foreground tiles
 	ld [rSCX], a
 
 .DoneCurve:
 	ld a, [wBgScrollFast] 
-	;;; this handles repeating foreground rows but bugs out with movable foreground start
 	sub a, b ; how much over foreground height have we scrolled
-	; sub a, d ; d is difference between fixed and movable foreground start
 	cp a, c ; c = FOREGROUND_TILEMAP_START - FOREGROUND_START_Y + TILE_HEIGHT
 	jp c, .NoReset
 	; undo scroll beyond one tile height
