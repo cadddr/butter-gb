@@ -16,7 +16,7 @@ call ClearOam
 
 ; Draw player object
 ld hl, _OAMRAM
-ld a, FOREGROUND_START_Y
+ld a, TILE_MIDDLE_Y
 ld b, 80 - 4
 ld c, $0 
 call SpawnObjectWithDefaultAttributes

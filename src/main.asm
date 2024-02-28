@@ -143,7 +143,7 @@ UpdatePositionY:
 	;;;
 
 	ld a, [_OAMRAM ] ; current Y coordinate
-	cp a, c;FOREGROUND_START_Y ; c
+	cp a, c
 	jp nc, .ScrollDown
 
 	ld a, [_OAMRAM ]
@@ -210,8 +210,8 @@ LYC::
     
 	ldh a, [rLY]
 	; dec b
-    sub a, b;FOREGROUND_START_Y - 1 ; rLY less movable foreground start
-	; cp a, b
+    sub a, b ; rLY less movable foreground start
+	; cp a, b ; does same but not modify a
     jr nc, .scrollForeground
 
 .scrollBackground:
@@ -262,9 +262,10 @@ LYC::
 
 .DoneCurve:
 	ld a, [wBgScrollFast] 
+	;;; this handles repeating foreground rows but bugs out with movable foreground start
 	sub a, b ; how much over foreground height have we scrolled
-	; sub a, d
-	cp a, c;FOREGROUND_TILEMAP_START - FOREGROUND_START_Y + TILE_HEIGHT
+	; sub a, d ; d is difference between fixed and movable foreground start
+	cp a, c ; c = FOREGROUND_TILEMAP_START - FOREGROUND_START_Y + TILE_HEIGHT
 	jp c, .NoReset
 	; undo scroll beyond one tile height
 	sub a, TILE_HEIGHT
