@@ -99,6 +99,38 @@ Main:
 	; arrow buttons control snowboard angle to the slope which in turn affects acceleration and direction
 	HandleInput ; macro jumps back to main
 
+
+; @
+UpdatePositionX:
+	ld a, [wVelX]
+	ld b, a
+
+	ld a, [wAngleNeg]
+	cp a, 1
+	jp nc, .MoveLeft
+
+.MoveRight:
+	ld a, [_OAMRAM + 1]
+	add a, b ; update X position with velocity value
+
+	ld b, 144
+	call ClipByMaximum
+	
+	ld [_OAMRAM + 1], a ; write back updated X position
+
+	ret 
+
+.MoveLeft:
+	ld a, [_OAMRAM + 1]
+	sub a, b ; update X position in negative directionwith velocity value
+
+	ld b, 20
+	call ClipByMinimum ; TODO this one is buggy
+
+	ld [_OAMRAM + 1], a ; write back updated X position
+
+	ret 
+
 ; controls apparent motion vs background scrolling
 ; @ return amount scrolled in b
 UpdatePositionY:
@@ -132,8 +164,7 @@ UpdatePositionY:
 	ld [wVelY], a
 	ret
 
-; 
-; @ TODO: should be velocity dependent
+; @ 
 SetParallaxScroll: ; this is for the scrolling foreground
 	ld a, [wVelY]
 	cp a, 0
@@ -143,13 +174,6 @@ SetParallaxScroll: ; this is for the scrolling foreground
 	ld a, [wBgScrollFast]
 	add a, b
 
-	;;; reset scroll after 1 tile
-; 	cp a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y + TILE_HEIGHT * FOREGROUND_ROWS; + TILE_HEIGHT / 2
-; 	jp c, .noResetScrollPosition
-; 	ld a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y; - TILE_HEIGHT / 2
-
-; .noResetScrollPosition:
-	;;;
 	ld [wBgScrollFast], a
 
 	;;; used to set side scrolling for slope curving
@@ -166,7 +190,7 @@ SetParallaxScroll: ; this is for the scrolling foreground
 .Exit:
 	ret
 
-; scroll background before line 64 at slow speed and after at fast speed
+; scroll background before FOREGROUND_START_Y line at slow speed and after it at fast speed
 LYC::
     push af
     ldh a, [rLY]
@@ -185,9 +209,9 @@ LYC::
 .scrollForeground
 	ld b, a ; store rLY
 
-	ld a, [wAngle]
-	cp a, 1
-	jp c, .NoCurve
+	; ld a, [wAngle]
+	; cp a, 1
+	; jp c, .NoCurve
 
 	; ld a, [wAngleNeg]
 	; cp a, 1
@@ -215,8 +239,7 @@ LYC::
 	cp a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y + TILE_HEIGHT
 	jp c, .NoReset
 
-	sub a, TILE_HEIGHT
-	; ld a, FOREGROUND_TILEMAP_START - FOREGROUND_START_Y
+	sub a, TILE_HEIGHT ; this allows wrapping scrolled foreground rows
 	ld [wBgScrollFast], a
 
 .NoReset:
@@ -225,34 +248,3 @@ LYC::
 	
     pop af
     reti
-
-; @
-UpdatePositionX:
-	ld a, [wVelX]
-	ld b, a
-
-	ld a, [wAngleNeg]
-	cp a, 1
-	jp nc, .MoveLeft
-
-.MoveRight:
-	ld a, [_OAMRAM + 1]
-	add a, b ; update X position with velocity value
-
-	ld b, 144
-	call ClipByMaximum
-	
-	ld [_OAMRAM + 1], a ; write back updated X position
-
-	ret 
-
-.MoveLeft:
-	ld a, [_OAMRAM + 1]
-	sub a, b ; update X position in negative directionwith velocity value
-
-	ld b, 20
-	call ClipByMinimum ; TODO this one is buggy
-
-	ld [_OAMRAM + 1], a ; write back updated X position
-
-	ret 
