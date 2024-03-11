@@ -32,42 +32,42 @@ InitObjects:
 	ld c, $6
 	call SpawnObjectWithDefaultAttributes
 
-	ld a, 88 + 8
-	ld b, 160
-	ld c, $7
-	call SpawnObjectWithDefaultAttributes
+	; ld a, 88 + 8
+	; ld b, 160
+	; ld c, $7
+	; call SpawnObjectWithDefaultAttributes
 
 	ld a, 88
 	ld b, 160 + 8
 	ld c, $8
 	call SpawnObjectWithDefaultAttributes
 
-	ld a, 88 + 8
-	ld b, 160 + 8
-	ld c, $9
-	call SpawnObjectWithDefaultAttributes
+	; ld a, 88 + 8
+	; ld b, 160 + 8
+	; ld c, $9
+	; call SpawnObjectWithDefaultAttributes
 
 	; Draw gondola object
-	ld hl, _OAMRAM + MAX_OBJECTS * 4 + 16
+	ld hl, _OAMRAM + MAX_OBJECTS * 4 + 8
 	ld a, 0
 	ld b, 0
 	ld c, $6
 	call SpawnObjectWithDefaultAttributes
 
-	ld a, 0 + 8
-	ld b, 0
-	ld c, $7
-	call SpawnObjectWithDefaultAttributes
+	; ld a, 0 + 8
+	; ld b, 0
+	; ld c, $7
+	; call SpawnObjectWithDefaultAttributes
 
 	ld a, 0
 	ld b, 0 + 8
 	ld c, $8
 	call SpawnObjectWithDefaultAttributes
 
-	ld a, 0 + 8
-	ld b, 0 + 8
-	ld c, $9
-	call SpawnObjectWithDefaultAttributes
+	; ld a, 0 + 8
+	; ld b, 0 + 8
+	; ld c, $9
+	; call SpawnObjectWithDefaultAttributes
 
 	; Draw trees left
 	ld a, FOREGROUND_START_Y - 8 ;1
@@ -75,30 +75,30 @@ InitObjects:
 	ld c, $A
 	call SpawnObjectWithDefaultAttributes
 
-	ld a, FOREGROUND_START_Y
-	ld b, 0 - 4
-	ld c, $B
-	call SpawnObjectWithDefaultAttributes
+	; ld a, FOREGROUND_START_Y
+	; ld b, 0 - 4
+	; ld c, $B
+	; call SpawnObjectWithDefaultAttributes
 
 	ld a, FOREGROUND_START_Y - 8 ;2
 	ld b, 0 + 4
 	ld c, $C
 	call SpawnObjectWithDefaultAttributes
 
-	ld a, FOREGROUND_START_Y
-	ld b, 0 + 4
-	ld c, $D
-	call SpawnObjectWithDefaultAttributes
+	; ld a, FOREGROUND_START_Y
+	; ld b, 0 + 4
+	; ld c, $D
+	; call SpawnObjectWithDefaultAttributes
 
 	ld a, FOREGROUND_START_Y - 8 ;3
 	ld b, 0 + 12
 	ld c, $E
 	call SpawnObjectWithDefaultAttributes
 
-	ld a, FOREGROUND_START_Y
-	ld b, 0 + 12
-	ld c, $F
-	call SpawnObjectWithDefaultAttributes
+	; ld a, FOREGROUND_START_Y
+	; ld b, 0 + 12
+	; ld c, $F
+	; call SpawnObjectWithDefaultAttributes
 
 	; Draw trees right
 	ld a, FOREGROUND_START_Y - 8 ;1
@@ -107,11 +107,11 @@ InitObjects:
 	ld d, $20
 	call SpawnObject
 
-	ld a, FOREGROUND_START_Y
-	ld b, 160 - (8- 4)
-	ld c, $B
-	ld d, $20
-	call SpawnObject
+	; ld a, FOREGROUND_START_Y
+	; ld b, 160 - (8- 4)
+	; ld c, $B
+	; ld d, $20
+	; call SpawnObject
 
 	ld a, FOREGROUND_START_Y - 8 ;2
 	ld b, 160 - (8 + 4)
@@ -119,11 +119,11 @@ InitObjects:
 	ld d, $20
 	call SpawnObject
 
-	ld a, FOREGROUND_START_Y
-	ld b, 160 - (8 + 4)
-	ld c, $D
-	ld d, $20
-	call SpawnObject
+	; ld a, FOREGROUND_START_Y
+	; ld b, 160 - (8 + 4)
+	; ld c, $D
+	; ld d, $20
+	; call SpawnObject
 
 	ld a, FOREGROUND_START_Y - 8 ;3
 	ld b, 160 - (8 + 12)
@@ -131,11 +131,11 @@ InitObjects:
 	ld d, $20
 	call SpawnObject
 
-	ld a, FOREGROUND_START_Y
-	ld b, 160 - (8 + 12)
-	ld c, $F
-	ld d, $20
-	call SpawnObject
+	; ld a, FOREGROUND_START_Y
+	; ld b, 160 - (8 + 12)
+	; ld c, $F
+	; ld d, $20
+	; call SpawnObject
 
 	ret
 
@@ -161,9 +161,9 @@ AnimateTrees: ; +2
 	call AdvanceTileToNextFrame
 	call AdvanceTileToNextFrame
 	call AdvanceTileToNextFrame
-	call AdvanceTileToNextFrame
-	call AdvanceTileToNextFrame
-	call AdvanceTileToNextFrame
+	; call AdvanceTileToNextFrame
+	; call AdvanceTileToNextFrame
+	; call AdvanceTileToNextFrame
 
 	ret
 

@@ -51,7 +51,7 @@ SECTION "Header", ROM0[$100]
 	call InitObjects
 
 	; Turn the LCD on
-	ld a, LCDCF_ON | LCDCF_BGON | LCDCF_OBJON ;| LCDCF_OBJ16
+	ld a, LCDCF_ON | LCDCF_BGON | LCDCF_OBJON | LCDCF_OBJ16
 	ld [rLCDC], a
 
 	call InitPalettes
@@ -149,7 +149,7 @@ UpdatePositionY:
 	
 .ScrollDown:
 	ld a, [wBgScrollSlow]
-	cp a, 96 ; end of mountain tiles
+	cp a, MAP_END_Y ; end of mountain tiles
 	jp nc, .ZeroVelY
 
 	push hl
@@ -183,7 +183,7 @@ SetParallaxScroll: ; this is for the scrolling foreground
 	add a, b
 	ld [wBgScrollFastX], a
 
-	ld hl, _OAMRAM + MAX_OBJECTS * 4 + 16 * 2
+	ld hl, _OAMRAM + MAX_OBJECTS * 4 + 2 * 2 * 4 ; skip gondola tiles
 	call AnimateTrees
 	call AnimateTrees
 
