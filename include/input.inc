@@ -28,6 +28,7 @@ macro HandleInput
         ld a, 1 ; above function only modifies sign but to pivot also need to set angle to 1
     NoPivotRight:
         ld [wAngle], a
+        rl a ; 16px obj
         ld [_OAMRAM + 2], a ; update tile to match updated angle
         jp Main
     
@@ -58,6 +59,7 @@ macro HandleInput
     
     NoPivotLeft:
         ld [wAngle], a
+        rl a ; 16px obj
         ld [_OAMRAM + 2], a ; update tile to match updated angle
         jp Main
 
