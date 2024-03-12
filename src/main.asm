@@ -56,10 +56,10 @@ SECTION "Header", ROM0[$100]
 
 	call InitPalettes
 
-	ld	a,STATF_MODE00
+	ld	a, STATF_MODE00
 	ldh	[rSTAT],a
 	; enable the interrupts
-	ld	a,IEF_LCDC
+	ld	a, IEF_LCDC
 	ldh	[rIE],a
 	xor	a
 	ei
@@ -84,14 +84,14 @@ Main:
 	call WaitBeforeVBlank
 	call WaitVBlank
 	SkipNonKeyFrames ; only update every few frames
-	; call LeaveTrailingMark
+	call LeaveTrailingMark
 
 	call UpdatePlayerVelocity
 
 	;;;;
 	call UpdatePositionY
 	call UpdatePositionX
-	call UpdateGondolaPosition
+	; call UpdateGondolaPosition
 	; call UpdateGondolaPosition2
 
 	call SetParallaxScroll
@@ -162,6 +162,7 @@ UpdatePositionY:
 .ZeroVelY:
 	ld a, 0
 	ld [wVelY], a
+	ld [_OAMRAM + 2], a ; also reset player anim
 	ret
 
 ; @ 

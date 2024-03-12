@@ -29,57 +29,57 @@ InitObjects:
 	ld hl, _OAMRAM + MAX_OBJECTS * 4
 	ld a, 88
 	ld b, 160
-	ld c, $6
+	ld c, TILE_GONDOLA
 	call SpawnObjectWithDefaultAttributes
 
 	ld a, 88
 	ld b, 160 + 8
-	ld c, $8
+	ld c, TILE_GONDOLA + 2
 	call SpawnObjectWithDefaultAttributes
 
 	; Draw gondola object 2
 	ld a, 0
 	ld b, 0
-	ld c, $6
+	ld c, TILE_GONDOLA
 	call SpawnObjectWithDefaultAttributes
 
 	ld a, 0
 	ld b, 0 + 8
-	ld c, $8
+	ld c, TILE_GONDOLA + 2
 	call SpawnObjectWithDefaultAttributes
 
 	; Draw trees left
 	ld a, FOREGROUND_START_Y - 8 ;1
 	ld b, 0 - 4
-	ld c, $A
+	ld c, TILE_TREES
 	call SpawnObjectWithDefaultAttributes
 
 	ld a, FOREGROUND_START_Y - 8 ;2
 	ld b, 0 + 4
-	ld c, $C
+	ld c, TILE_TREES + 2
 	call SpawnObjectWithDefaultAttributes
 
 	ld a, FOREGROUND_START_Y - 8 ;3
 	ld b, 0 + 12
-	ld c, $E
+	ld c, TILE_TREES + 4
 	call SpawnObjectWithDefaultAttributes
 
 	; Draw trees right
 	ld a, FOREGROUND_START_Y - 8 ;1
 	ld b, 160 - (8 - 4)
-	ld c, $A
+	ld c, TILE_TREES
 	ld d, $20
 	call SpawnObject
 
 	ld a, FOREGROUND_START_Y - 8 ;2
 	ld b, 160 - (8 + 4)
-	ld c, $C
+	ld c, TILE_TREES + 2
 	ld d, $20
 	call SpawnObject
 
 	ld a, FOREGROUND_START_Y - 8 ;3
 	ld b, 160 - (8 + 12)
-	ld c, $E
+	ld c, TILE_TREES + 4
 	ld d, $20
 	call SpawnObject
 
@@ -90,7 +90,7 @@ AdvanceTileToNextFrame:
 	inc hl
 	ld a, [hl];tile ID
 	add a, 6
-	cp a, $F + 7
+	cp a, (TILE_TREES + 5) + (6 + 1)
 	jp c, .NoResetTile
 .ResetTile:
 	sub a, 6
@@ -110,7 +110,7 @@ AnimateTrees: ; +2
 
 	ret
 
-UpdateGondolaPosition:
+UpdateGondolaPosition: ; TODO this to be changed for 16 px sprites
 	ld a, h ; store hl in memory
 	ld [wTemp], a
 	ld a, l
@@ -245,10 +245,10 @@ LeaveTrailingMark:
 	ld [hli], a
 	ld a, [_OAMRAM + 1]
 	ld [hli], a
-	ld a, [_OAMRAM + 2]
-	add a, 3 ; offset to trails tiles
+	ld a, [_OAMRAM + 2] ; player tile id
+	add a, 6 ; offset to trails tiles
 	ld [hli], a
-	ld a, [_OAMRAM + 3]
+	ld a, [_OAMRAM + 3] ; flags e.g., orientation
 	or a, $10 ; white palette
 	ld [hli], a 
 	
@@ -262,16 +262,17 @@ LeaveTrailingMark:
 	ld a, [wVelY]
 	ld d, a
 
-	ld a, h ; store hl in memory
-	ld [wTemp], a
-	ld a, l
-	ld [wTemp + 1], a
+	push hl
+	; ld a, h ; store hl in memory
+	; ld [wTemp], a
+	; ld a, l
+	; ld [wTemp + 1], a
 
-	ld hl, _OAMRAM + 4
+	ld hl, _OAMRAM + 4 ; start of trail objects
 	ld bc, 4 * (MAX_OBJECTS - 1) ; length
 .Loop:
 	ld a, [hl]; get Y value
-	sub a, d
+	sub a, d ; move each trail tile up by speed amount
 	ld [hl], a
 
 	inc hl
@@ -288,10 +289,11 @@ LeaveTrailingMark:
     or a, c
 	jp nz, .Loop
 
-	ld a, [wTemp] ; restore hl from memory
-	ld h, a
-	ld a, [wTemp + 1]
-	ld l, a
+	; ld a, [wTemp] ; restore hl from memory
+	; ld h, a
+	; ld a, [wTemp + 1]
+	; ld l, a
+	pop hl
 
 	ret
 
@@ -299,7 +301,7 @@ EnforceObjectLimit:
 	ld a, [wObjectCounter]
 	cp a, MAX_OBJECTS ; has to be one more than two total objects for carry to occur
 	jp c, .NoResetObjects ; not less than
-	ld a, 1
+	ld a, 1 ; resetting
 	ld hl, _OAMRAM + 4 ; the fact that it resets pointer to first object makes it hard to tell old vs new
 .NoResetObjects:
 	inc a

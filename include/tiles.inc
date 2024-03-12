@@ -1,8 +1,7 @@
 SECTION "Tile data", ROM0
 
 Player:
-    INCBIN "player.gb",0,96
-	; db $00,$00, $00,$00, $00,$00, $20,$00, $10,$00, $18,$00, $00,$2C, $26,$68, $5F,$70, $5D,$7A, $6D,$7B, $6A,$79, $53,$70, $41,$60, $21,$60, $00,$20
+    INCBIN "player.gb",0,192
 	INCBIN "gondola.gb",0,64
 	INCBIN "trees.gb",0,192
 PlayerEnd:
