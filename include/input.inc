@@ -1,6 +1,11 @@
 macro HandleInput
     call UpdateKeys
 
+    ; reset level on start
+    ld a, [wCurKeys]
+    and a, PADF_START
+    jp nz, EntryPoint
+
     CheckLeft:
         ld a, [wCurKeys]
         and a, PADF_LEFT

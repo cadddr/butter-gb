@@ -236,6 +236,15 @@ LeaveTrailingMark:
 	ld a, [wVelY]
 	or a, a
 	jp nz, .Continue ; only leave traces when moving
+
+	; if stopped make traces in the air disappear
+.ClearUpTraces:
+	push hl
+	ld hl, _OAMRAM + 4
+	ld b, (MAX_OBJECTS - 1) * 4
+	call ClearOam
+	pop hl
+
 	ret 
 
 .Continue:
@@ -252,7 +261,7 @@ LeaveTrailingMark:
 	or a, $10 ; white palette
 	ld [hli], a 
 	
-	ld a, [rSCY]
+	ld a, [rSCY] ; is this correct?
 	cp a, 1
 	jp nc, .ScrollTrailsUp; not less than 1
 
@@ -263,10 +272,6 @@ LeaveTrailingMark:
 	ld d, a
 
 	push hl
-	; ld a, h ; store hl in memory
-	; ld [wTemp], a
-	; ld a, l
-	; ld [wTemp + 1], a
 
 	ld hl, _OAMRAM + 4 ; start of trail objects
 	ld bc, 4 * (MAX_OBJECTS - 1) ; length
@@ -289,10 +294,6 @@ LeaveTrailingMark:
     or a, c
 	jp nz, .Loop
 
-	; ld a, [wTemp] ; restore hl from memory
-	; ld h, a
-	; ld a, [wTemp + 1]
-	; ld l, a
 	pop hl
 
 	ret

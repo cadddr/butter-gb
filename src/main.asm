@@ -55,15 +55,8 @@ SECTION "Header", ROM0[$100]
 	ld [rLCDC], a
 
 	call InitPalettes
+	call InitInterrupts
 
-	ld	a, STATF_MODE00
-	ldh	[rSTAT],a
-	; enable the interrupts
-	ld	a, IEF_LCDC
-	ldh	[rIE],a
-	xor	a
-	ei
-	ldh	[rIF],a
 
 	call InitVariables
 
@@ -91,7 +84,7 @@ Main:
 	;;;;
 	call UpdatePositionY
 	call UpdatePositionX
-	; call UpdateGondolaPosition
+	call UpdateGondolaPosition
 	; call UpdateGondolaPosition2
 
 	call SetParallaxScroll

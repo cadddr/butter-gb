@@ -2,26 +2,26 @@ SECTION "Player", ROM0
 
 InitPlayer:
 
-; Copy the tile data
-ld de, Player
-ld hl, $8000
-ld bc, PlayerEnd - Player
-call Memcopy
+	; Copy the tile data
+	ld de, Player
+	ld hl, $8000
+	ld bc, PlayerEnd - Player
+	call Memcopy
 
-; Initialize object memory
-ld a, 0
-ld b, 160
-ld hl, _OAMRAM
-call ClearOam
+	; Initialize object memory
+	ld a, 0
+	ld b, 160
+	ld hl, _OAMRAM
+	call ClearOam
 
-; Draw player object
-ld hl, _OAMRAM
-ld a, FOREGROUND_START_Y
-ld b, 80 - 4
-ld c, $0 
-call SpawnObjectWithDefaultAttributes
+	; Draw player object
+	ld hl, _OAMRAM
+	ld a, FOREGROUND_START_Y
+	ld b, 80 - 4
+	ld c, $0 
+	call SpawnObjectWithDefaultAttributes
 
-ret
+	ret
 
 UpdatePlayerVelocity:
     ;;;; handle angle-dependent acceleration and velocity update

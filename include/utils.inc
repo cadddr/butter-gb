@@ -34,6 +34,9 @@ Memcopy:
 
     ret
 
+; @param hli
+; @param a
+; @param b
 ClearOam:
 	ld [hli], a
 	dec b
@@ -48,6 +51,17 @@ InitPalettes:
 	ld [rOBP0], a
 	ld a, %00000000 ; palette
 	ld [rOBP1], a
+  ret
+
+InitInterrupts:
+  ld	a, STATF_MODE00
+	ldh	[rSTAT],a
+	; enable the interrupts
+	ld	a, IEF_LCDC
+	ldh	[rIE],a
+	xor	a
+	ei
+	ldh	[rIF],a
   ret
 
 UpdateKeys:
