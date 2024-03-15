@@ -84,12 +84,12 @@ Main:
 	;;;;
 	call UpdatePositionY
 	call UpdatePositionX
-	
+
 	push hl
-	ld hl, GONDOLA_OAM
-	call UpdateGondolaPosition
-	ld hl, GONDOLA2_OAM
-	call UpdateGondolaPosition
+	ld hl, OAM_GONDOLA_RIGHT
+	call UpdateGondolaPositionDec
+	ld hl, OAM_GONDOLA_LEFT
+	call UpdateGondolaPositionInc
 	pop hl
 
 	call SetParallaxScroll
@@ -182,8 +182,9 @@ SetParallaxScroll: ; this is for the scrolling foreground
 	add a, b
 	ld [wBgScrollFastX], a
 
-	ld hl, _OAMRAM + MAX_OBJECTS * 4 + 2 * 2 * 4 ; skip gondola tiles
+	ld hl, OAM_TREES_LEFT
 	call AnimateTrees
+	ld hl, OAM_TREES_RIGHT
 	call AnimateTrees
 
 .Exit:

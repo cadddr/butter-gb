@@ -26,7 +26,7 @@ SpawnObjectWithDefaultAttributes:
 InitObjects:
 
 	; Draw gondola object
-	ld hl, GONDOLA_OAM
+	ld hl, OAM_GONDOLA_RIGHT
 	ld a, 88
 	ld b, 160
 	ld c, TILE_GONDOLA
@@ -38,6 +38,7 @@ InitObjects:
 	call SpawnObjectWithDefaultAttributes
 
 	; Draw gondola object 2
+	ld hl, OAM_GONDOLA_LEFT
 	ld a, 0
 	ld b, 0
 	ld c, TILE_GONDOLA
@@ -49,6 +50,7 @@ InitObjects:
 	call SpawnObjectWithDefaultAttributes
 
 	; Draw trees left
+	ld hl, OAM_TREES_LEFT
 	ld a, FOREGROUND_START_Y - 8 ;1
 	ld b, 0 - 4
 	ld c, TILE_TREES
@@ -65,6 +67,7 @@ InitObjects:
 	call SpawnObjectWithDefaultAttributes
 
 	; Draw trees right
+	ld hl, OAM_TREES_RIGHT
 	ld a, FOREGROUND_START_Y - 8 ;1
 	ld b, 160 - (8 - 4)
 	ld c, TILE_TREES
@@ -111,7 +114,7 @@ AnimateTrees: ; +2
 	ret
 
 ; @param hl: gondola oam
-UpdateGondolaPosition: 
+UpdateGondolaPositionDec: 
 	; 0
 	ld a, [hl]
 	dec a
@@ -133,68 +136,32 @@ UpdateGondolaPosition:
 	dec a
 	ld [hli], a
 
-	inc hl
-	inc hl
-
-	pop hl
-
 	ret
 
-; UpdateGondolaPosition2:
-; 	push hl
+; @param hl: gondola oam
+UpdateGondolaPositionInc:
+	; 0
+	ld a, [hl]
+	inc a
+	ld [hli], a
 
-; 	; ld hl, _OAMRAM + MAX_OBJECTS * 4 + 2 * 2 * 4
-; 	ld hl, _OAMRAM + MAX_OBJECTS * 4 + 2 * 4
+	ld a, [hl]
+	inc a
+	ld [hli], a
 
-; 	; 0
-; 	ld a, [hl]
-; 	inc a
-; 	ld [hli], a
+	inc hl
+	inc hl
 
-; 	ld a, [hl]
-; 	inc a
-; 	ld [hli], a
+	; 2
+	ld a, [hl]
+	inc a
+	ld [hli], a
 
-; 	inc hl
-; 	inc hl
+	ld a, [hl]
+	inc a
+	ld [hli], a
 
-; 	; ; 1
-; 	; ld a, [hl]
-; 	; inc a
-; 	; ld [hli], a
-
-; 	; ld a, [hl]
-; 	; inc a
-; 	; ld [hli], a
-
-; 	; inc hl
-; 	; inc hl
-
-; 	; 2
-; 	ld a, [hl]
-; 	inc a
-; 	ld [hli], a
-
-; 	ld a, [hl]
-; 	inc a
-; 	ld [hli], a
-
-; 	inc hl
-; 	inc hl
-
-; 	; 3
-; 	; ld a, [hl]
-; 	; inc a
-; 	; ld [hli], a
-
-; 	; ld a, [hl]
-; 	; inc a
-; 	; ld [hl], a
-
-
-; 	pop hl
-
-; 	ret
+	ret
 
 LeaveTrailingMark:
 	ld a, [wVelY]
