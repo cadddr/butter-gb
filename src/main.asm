@@ -84,8 +84,13 @@ Main:
 	;;;;
 	call UpdatePositionY
 	call UpdatePositionX
+	
+	push hl
+	ld hl, GONDOLA_OAM
 	call UpdateGondolaPosition
-	call UpdateGondolaPosition2
+	ld hl, GONDOLA2_OAM
+	call UpdateGondolaPosition
+	pop hl
 
 	call SetParallaxScroll
 

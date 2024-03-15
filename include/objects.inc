@@ -26,7 +26,7 @@ SpawnObjectWithDefaultAttributes:
 InitObjects:
 
 	; Draw gondola object
-	ld hl, _OAMRAM + MAX_OBJECTS * 4
+	ld hl, GONDOLA_OAM
 	ld a, 88
 	ld b, 160
 	ld c, TILE_GONDOLA
@@ -110,11 +110,8 @@ AnimateTrees: ; +2
 
 	ret
 
+; @param hl: gondola oam
 UpdateGondolaPosition: 
-	push hl
-
-	ld hl, _OAMRAM + MAX_OBJECTS * 4
-
 	; 0
 	ld a, [hl]
 	dec a
@@ -143,61 +140,61 @@ UpdateGondolaPosition:
 
 	ret
 
-UpdateGondolaPosition2:
-	push hl
+; UpdateGondolaPosition2:
+; 	push hl
 
-	; ld hl, _OAMRAM + MAX_OBJECTS * 4 + 2 * 2 * 4
-	ld hl, _OAMRAM + MAX_OBJECTS * 4 + 2 * 4
+; 	; ld hl, _OAMRAM + MAX_OBJECTS * 4 + 2 * 2 * 4
+; 	ld hl, _OAMRAM + MAX_OBJECTS * 4 + 2 * 4
 
-	; 0
-	ld a, [hl]
-	inc a
-	ld [hli], a
+; 	; 0
+; 	ld a, [hl]
+; 	inc a
+; 	ld [hli], a
 
-	ld a, [hl]
-	inc a
-	ld [hli], a
+; 	ld a, [hl]
+; 	inc a
+; 	ld [hli], a
 
-	inc hl
-	inc hl
+; 	inc hl
+; 	inc hl
 
-	; ; 1
-	; ld a, [hl]
-	; inc a
-	; ld [hli], a
+; 	; ; 1
+; 	; ld a, [hl]
+; 	; inc a
+; 	; ld [hli], a
 
-	; ld a, [hl]
-	; inc a
-	; ld [hli], a
+; 	; ld a, [hl]
+; 	; inc a
+; 	; ld [hli], a
 
-	; inc hl
-	; inc hl
+; 	; inc hl
+; 	; inc hl
 
-	; 2
-	ld a, [hl]
-	inc a
-	ld [hli], a
+; 	; 2
+; 	ld a, [hl]
+; 	inc a
+; 	ld [hli], a
 
-	ld a, [hl]
-	inc a
-	ld [hli], a
+; 	ld a, [hl]
+; 	inc a
+; 	ld [hli], a
 
-	inc hl
-	inc hl
+; 	inc hl
+; 	inc hl
 
-	; 3
-	; ld a, [hl]
-	; inc a
-	; ld [hli], a
+; 	; 3
+; 	; ld a, [hl]
+; 	; inc a
+; 	; ld [hli], a
 
-	; ld a, [hl]
-	; inc a
-	; ld [hl], a
+; 	; ld a, [hl]
+; 	; inc a
+; 	; ld [hl], a
 
 
-	pop hl
+; 	pop hl
 
-	ret
+; 	ret
 
 LeaveTrailingMark:
 	ld a, [wVelY]
