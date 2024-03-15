@@ -110,11 +110,8 @@ AnimateTrees: ; +2
 
 	ret
 
-UpdateGondolaPosition: ; TODO this to be changed for 16 px sprites
-	ld a, h ; store hl in memory
-	ld [wTemp], a
-	ld a, l
-	ld [wTemp + 1], a
+UpdateGondolaPosition: 
+	push hl
 
 	ld hl, _OAMRAM + MAX_OBJECTS * 4
 
@@ -130,18 +127,6 @@ UpdateGondolaPosition: ; TODO this to be changed for 16 px sprites
 	inc hl
 	inc hl
 
-	; 1
-	ld a, [hl]
-	dec a
-	ld [hli], a
-
-	ld a, [hl]
-	dec a
-	ld [hli], a
-
-	inc hl
-	inc hl
-
 	; 2
 	ld a, [hl]
 	dec a
@@ -154,30 +139,15 @@ UpdateGondolaPosition: ; TODO this to be changed for 16 px sprites
 	inc hl
 	inc hl
 
-	; 3
-	ld a, [hl]
-	dec a
-	ld [hli], a
-
-	ld a, [hl]
-	dec a
-	ld [hl], a
-
-
-	ld a, [wTemp] ; restore hl from memory
-	ld h, a
-	ld a, [wTemp + 1]
-	ld l, a
+	pop hl
 
 	ret
 
 UpdateGondolaPosition2:
-	ld a, h ; store hl in memory
-	ld [wTemp], a
-	ld a, l
-	ld [wTemp + 1], a
+	push hl
 
-	ld hl, _OAMRAM + MAX_OBJECTS * 4 + 2 * 2 * 4
+	; ld hl, _OAMRAM + MAX_OBJECTS * 4 + 2 * 2 * 4
+	ld hl, _OAMRAM + MAX_OBJECTS * 4 + 2 * 4
 
 	; 0
 	ld a, [hl]
@@ -191,17 +161,17 @@ UpdateGondolaPosition2:
 	inc hl
 	inc hl
 
-	; 1
-	ld a, [hl]
-	inc a
-	ld [hli], a
+	; ; 1
+	; ld a, [hl]
+	; inc a
+	; ld [hli], a
 
-	ld a, [hl]
-	inc a
-	ld [hli], a
+	; ld a, [hl]
+	; inc a
+	; ld [hli], a
 
-	inc hl
-	inc hl
+	; inc hl
+	; inc hl
 
 	; 2
 	ld a, [hl]
@@ -216,19 +186,16 @@ UpdateGondolaPosition2:
 	inc hl
 
 	; 3
-	ld a, [hl]
-	inc a
-	ld [hli], a
+	; ld a, [hl]
+	; inc a
+	; ld [hli], a
 
-	ld a, [hl]
-	inc a
-	ld [hl], a
+	; ld a, [hl]
+	; inc a
+	; ld [hl], a
 
 
-	ld a, [wTemp] ; restore hl from memory
-	ld h, a
-	ld a, [wTemp + 1]
-	ld l, a
+	pop hl
 
 	ret
 

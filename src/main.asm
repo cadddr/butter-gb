@@ -85,7 +85,7 @@ Main:
 	call UpdatePositionY
 	call UpdatePositionX
 	call UpdateGondolaPosition
-	; call UpdateGondolaPosition2
+	call UpdateGondolaPosition2
 
 	call SetParallaxScroll
 
