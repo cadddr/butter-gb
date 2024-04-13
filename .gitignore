@@ -1,4 +1,5 @@
-/bin/
-/obj/
-/dep/
-/assets/
+bin
+obj
+src/assets
+src/tools
+include/hardware.inc
